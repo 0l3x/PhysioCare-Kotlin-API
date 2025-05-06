@@ -28,7 +28,7 @@ class PhysioCareRepository(private val sessionManager: SessionManager) {
         sessionManager.clearSession()
     }
 
-    fun getSessionFlow(): Flow<Pair<String?, String?>> = sessionManager.sessionFlow
+    private fun getSessionFlow(): Flow<Pair<String?, String?>> = sessionManager.sessionFlow
 
     suspend fun getAllRecords(): RecordsResponse {
         val (token, _) = getSessionFlow().first()
