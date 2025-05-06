@@ -3,6 +3,7 @@ package edu.olexandergalaktionov.physiocare.data
 import android.util.Log
 import edu.olexandergalaktionov.physiocare.model.LoginRequest
 import edu.olexandergalaktionov.physiocare.model.LoginResponse
+import edu.olexandergalaktionov.physiocare.model.RecordsResponse
 
 class RemoteDataSource {
     companion object {
@@ -20,5 +21,15 @@ class RemoteDataSource {
                 throw Exception("Error en login: ${response.message()}")
             }
         }
+
+        suspend fun getAllRecords(token: String): RecordsResponse {
+            val response = api.getAllRecords("Bearer $token")
+            if (response.isSuccessful) {
+                return response.body() ?: throw Exception("Respuesta vacía del servidor")
+            } else {
+                throw Exception("Error al obtener records: ${response.message()}")
+            }
+        }
+
     }
 }

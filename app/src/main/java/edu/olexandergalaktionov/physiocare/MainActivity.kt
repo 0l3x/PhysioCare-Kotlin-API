@@ -41,6 +41,13 @@ class MainActivity : AppCompatActivity() {
                 // Handle login error
                 Log.d("MainActivity", "Login failed: ${response.error}")
             }
+
+            val repository = PhysioCareRepository(SessionManager(dataStore))
+            val records = repository.getAllRecords()
+            for (record in records.resultado!!) {
+                Log.d("RECORD", "ID: ${record.id}, Patient: ${record.patient}, Note: ${record.medicalRecord}")
+            }
+
         }
 
 

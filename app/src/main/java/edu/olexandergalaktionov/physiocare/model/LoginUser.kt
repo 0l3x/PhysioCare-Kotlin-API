@@ -10,7 +10,7 @@ data class LoginRequest(
 )
 
 data class LoginResponse(
-    @SerializedName("result")
+    @SerializedName("token")
     val token: String?,
     @SerializedName("rol")
     val rol: String?,
