@@ -3,4 +3,6 @@
     <string name="fecha">Fecha: AAAA-MM-DD</string>
     <string name="diagnostico">Diagnóstico: Lumbalgia</string>
     <string name="fisio">Fisio: Miguel</string>
+    <string name="login">Usuario</string>
+    <string name="password">Contraseña</string>
 </resources>
