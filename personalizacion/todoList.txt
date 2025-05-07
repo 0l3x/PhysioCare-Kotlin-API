@@ -5,7 +5,7 @@
 
 todo: 
 
-	-borrar cita
+	-borrar cita funciona (1:45 08/05)
 	-anyadir cita
 	-ver records, detalle record
 	-buscar record
