@@ -5,4 +5,5 @@
     <string name="fisio">Fisio: Miguel</string>
     <string name="login">Usuario</string>
     <string name="password">Contraseña</string>
+    <string name="logout">Logout</string>
 </resources>

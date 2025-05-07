@@ -65,6 +65,9 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val (token, username) = SessionManager(dataStore).sessionFlow.first()
             Log.i("SESSION", "Token: $token, Username: $username")
+
+                SessionManager(dataStore).clearSession() // <- BORRA LA SESIÓN para probar el login
+
             if (token == null) {
                 showLoginDialog()
             } else {
@@ -84,6 +87,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     is LoginState.Error -> {
                         Toast.makeText(this@MainActivity, "Login fallido: ${state.message}", Toast.LENGTH_SHORT).show()
+                        mainViewModel.resetLoginState()
                     }
                     else -> {}
                 }
@@ -92,6 +96,40 @@ class MainActivity : AppCompatActivity() {
 
         binding.btnUpcoming.setOnClickListener { filterAppointments(upcoming = true) }
         binding.btnPast.setOnClickListener { filterAppointments(upcoming = false) }
+
+        binding.mToolbar.inflateMenu(R.menu.main_menu)
+        updateToolbarMenu()
+
+        binding.mToolbar.setOnMenuItemClickListener {
+            when (it.itemId) {
+                R.id.action_login -> {
+                    showLoginDialog()
+                    true
+                }
+
+                R.id.action_logout -> {
+                    lifecycleScope.launch {
+                        SessionManager(dataStore).clearSession()
+                        mainViewModel.logout() // si tienes esa función, opcional
+                        updateToolbarMenu()
+                        appointmentAdapter.submitList(emptyList())
+                        Toast.makeText(this@MainActivity, "Sesión cerrada", Toast.LENGTH_SHORT).show()
+                    }
+                    true
+                }
+
+                else -> false
+            }
+        }
+    }
+
+    private fun updateToolbarMenu() {
+        lifecycleScope.launch {
+            val (token, _) = SessionManager(dataStore).sessionFlow.first()
+            val menu = binding.mToolbar.menu
+            menu.findItem(R.id.action_login)?.isVisible = token == null
+            menu.findItem(R.id.action_logout)?.isVisible = token != null
+        }
     }
 
     private fun loadAppointments() {

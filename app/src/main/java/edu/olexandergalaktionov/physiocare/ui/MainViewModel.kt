@@ -34,6 +34,10 @@ class MainViewModel(private val repository: PhysioCareRepository) : ViewModel() 
     fun resetLoginState() {
         _loginState.value = LoginState.Idle
     }
+
+    fun logout() {
+        resetLoginState()
+    }
 }
 
 class MainViewModelFactory(private val repository: PhysioCareRepository) : ViewModelProvider.Factory {
