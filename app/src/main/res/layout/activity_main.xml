@@ -23,9 +23,10 @@
         android:id="@+id/filterButtons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center"
         android:orientation="horizontal"
         android:padding="12dp"
-        android:gravity="center">
+        android:visibility="invisible">
 
         <Button
             android:id="@+id/btnUpcoming"
@@ -58,4 +59,13 @@
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:listitem="@layout/item_appointment" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <TextView
+        android:id="@+id/noDataText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/no_data"
+        android:textSize="24sp"
+        android:visibility="invisible" />
 </LinearLayout>

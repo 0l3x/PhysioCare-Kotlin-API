@@ -28,6 +28,7 @@ import edu.olexandergalaktionov.physiocare.ui.PhysioViewModelFactory
 import edu.olexandergalaktionov.physiocare.utils.SessionManager
 import edu.olexandergalaktionov.physiocare.utils.checkConnection
 import edu.olexandergalaktionov.physiocare.utils.dataStore
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -43,17 +44,22 @@ class MainActivity : AppCompatActivity() {
 
     // Gestiona la sesión del usuario
     private val mainViewModel: MainViewModel by viewModels {
-        MainViewModelFactory(PhysioCareRepository(SessionManager(dataStore)))
+        MainViewModelFactory(PhysioCareRepository(sessionManager))
     }
 
     // Gestiona las citas del paciente
     private val appointmentViewModel: AppointmentViewModel by viewModels {
-        AppointmentViewModelFactory(PhysioCareRepository(SessionManager(dataStore)))
+        AppointmentViewModelFactory(PhysioCareRepository(sessionManager))
     }
 
     // Gestiona las citas del fisioterapeuta
     private val physioViewModel: PhysioViewModel by viewModels {
-        PhysioViewModelFactory(PhysioCareRepository(SessionManager(dataStore)))
+        PhysioViewModelFactory(PhysioCareRepository(sessionManager))
+    }
+
+    override fun onStart() {
+        super.onStart()
+        loadData()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,10 +67,20 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
+        }
+
+        lifecycleScope.launch {
+            val token = sessionManager.sessionFlow.first().first
+            if (token == null) {
+                showLoginDialog()
+            } else {
+                loadData()
+            }
         }
 
         setupRecyclerView()
@@ -74,14 +90,18 @@ class MainActivity : AppCompatActivity() {
         handleSessionOnLaunch()
     }
 
-    override fun onResume() {
-        super.onResume()
-
+    private fun handleSessionOnLaunch() {
         lifecycleScope.launch {
-            val token = SessionManager(dataStore).sessionFlow.first().first
-            if (token == null) {
-                Toast.makeText(this@MainActivity, "Sesión no iniciada", Toast.LENGTH_SHORT).show()
-                showLoginDialog()
+            mainViewModel.loginState.collect { state ->
+                when (state) {
+                    is LoginState.Loading -> Log.i("LOGIN", "Cargando...")
+                    is LoginState.Success -> handleLoginSuccess(state)
+                    is LoginState.Error -> {
+                        Toast.makeText(this@MainActivity, "Login fallido: ${state.message}", Toast.LENGTH_SHORT).show()
+                        mainViewModel.resetLoginState()
+                    }
+                    else -> {}
+                }
             }
         }
     }
@@ -113,20 +133,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.swipeRefresh.setOnRefreshListener {
-            lifecycleScope.launch {
-                if (!checkConnection(this@MainActivity)) {
-                    Toast.makeText(this@MainActivity, "Sin conexión", Toast.LENGTH_SHORT).show()
-                } else {
-                    if (isPatient) {
-                        patientId?.let { appointmentViewModel.fetchAppointmentsByPatient(it) }
-                    } else {
-                        sessionManager.userIdFlow.first()?.let {
-                            physioViewModel.loadAppointmentsForPhysio(it)
-                        }
-                    }
-                }
-                binding.swipeRefresh.isRefreshing = false
-            }
+            loadData()
         }
     }
 
@@ -167,63 +174,41 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun observeViewModels() {
+        // Observa los cambios en las citas del fisioterapeuta
         lifecycleScope.launch {
-            mainViewModel.loginState.collect { state ->
-                when (state) {
-                    is LoginState.Loading -> Log.i("LOGIN", "Cargando...")
-                    is LoginState.Success -> handleLoginSuccess(state)
-                    is LoginState.Error -> {
-                        Toast.makeText(this@MainActivity, "Login fallido: ${state.message}", Toast.LENGTH_SHORT).show()
-                        mainViewModel.resetLoginState()
-                    }
-                    else -> {}
+            physioViewModel.appointments.collect {
+                Log.i("VIEWMODEL_COLLECT", "isPatient: $isPatient - citas recibidas: ${it.size}")
+                if (!isPatient) {
+                    appointmentAdapter.submitList(it)
+                    updateEmptyView(it.size)
                 }
             }
         }
 
-        lifecycleScope.launch {
-            physioViewModel.appointments.collect {
-                if (!isPatient) appointmentAdapter.submitList(it)
-            }
-        }
-
+        // Observa los cambios en las citas del paciente
         lifecycleScope.launch {
             appointmentViewModel.futureAppointments.collect {
-                if (isPatient && showingFutureAppointments) appointmentAdapter.submitList(it)
+                if (isPatient && showingFutureAppointments) {
+                    appointmentAdapter.submitList(it)
+                    updateEmptyView(it.size)
+                }
             }
         }
 
+        // Observa los cambios en las citas pasadas del paciente
         lifecycleScope.launch {
             appointmentViewModel.pastAppointments.collect {
-                if (isPatient && !showingFutureAppointments) appointmentAdapter.submitList(it)
+                if (isPatient && !showingFutureAppointments) {
+                    appointmentAdapter.submitList(it)
+                    updateEmptyView(it.size)
+                }
             }
         }
 
+        // Observa los cambios en el estado de error
         lifecycleScope.launch {
             appointmentViewModel.error.collect {
                 it?.let { msg -> Toast.makeText(this@MainActivity, msg, Toast.LENGTH_LONG).show() }
-            }
-        }
-    }
-
-    private fun handleSessionOnLaunch() {
-        lifecycleScope.launch {
-            val token = sessionManager.sessionFlow.first().first
-            val role = sessionManager.roleFlow.first()
-            val userId = sessionManager.userIdFlow.first()
-
-            if (token == null) {
-                showLoginDialog()
-            } else {
-                updateToolbarMenu()
-                isPatient = role == "patient"
-                patientId = userId
-                if (isPatient && patientId != null) {
-                    appointmentViewModel.fetchAppointmentsByPatient(patientId!!)
-                } else {
-                    physioViewModel.loadAppointmentsForPhysio(userId ?: "")
-                    binding.filterButtons.visibility = View.GONE
-                }
             }
         }
     }
@@ -232,22 +217,79 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             sessionManager.saveSession(
                 state.response.token!!,
-                state.response.rol!!,
                 state.response.usuarioId!!,
-                state.response.rol
+                state.response.rol!!
             )
             isPatient = state.response.rol == "patient"
             patientId = state.response.usuarioId
 
             if (isPatient) {
                 appointmentViewModel.fetchAppointmentsByPatient(patientId!!)
+                observeViewModels()
+                binding.filterButtons.visibility = View.VISIBLE
             } else {
                 physioViewModel.loadAppointmentsForPhysio(patientId!!)
+                observeViewModels()
                 binding.filterButtons.visibility = View.GONE
             }
 
             updateToolbarMenu()
         }
+    }
+
+    //carga de datos
+    private fun loadData() {
+        lifecycleScope.launch {
+            binding.swipeRefresh.isRefreshing = true
+            Log.i("LOAD_DATA", "Cargando datos...")
+
+            if (!checkConnection(this@MainActivity)) {
+                Toast.makeText(this@MainActivity, "Sin conexión", Toast.LENGTH_SHORT).show()
+                clearAppointments()
+                binding.swipeRefresh.isRefreshing = false
+                return@launch
+            }
+
+            val token = sessionManager.sessionFlow.first().first
+            val role = sessionManager.roleFlow.first()
+            val userId = sessionManager.userIdFlow.first()
+
+            Log.i("LOAD_DATA", "Token: $token, Rol: $role, ID: $userId")
+
+            if (token == null || role == null || userId == null) {
+                clearAppointments()
+                showLoginDialog()
+                binding.swipeRefresh.isRefreshing = false
+                return@launch
+            }
+
+            isPatient = role == "patient"
+            patientId = userId
+
+            try {
+                if (isPatient) {
+                    appointmentViewModel.fetchAppointmentsByPatient(userId)
+                    observeViewModels()
+                    Log.i("LOAD_DATA", "Citas del paciente cargadas")
+                    binding.filterButtons.visibility = View.VISIBLE
+                } else {
+                    physioViewModel.loadAppointmentsForPhysio(userId)
+                    showingFutureAppointments = false // Permite al fisio ver todas las citas
+                    observeViewModels()
+                    Log.i("LOAD_DATA", "Citas del fisioterapeuta cargadas")
+                    binding.filterButtons.visibility = View.GONE
+                }
+            } catch (e: Exception) {
+                Log.e("LOAD_DATA", "Error: ${e.message}")
+                Toast.makeText(this@MainActivity, "Error al cargar datos", Toast.LENGTH_SHORT).show()
+            } finally {
+                binding.swipeRefresh.isRefreshing = false
+            }
+        }
+    }
+
+    private fun clearAppointments() {
+        appointmentAdapter.submitList(emptyList())
     }
 
     private fun updateToolbarMenu() {
@@ -280,5 +322,9 @@ class MainActivity : AppCompatActivity() {
             }
             .setNegativeButton("Cancelar", null)
             .show()
+    }
+
+    private fun updateEmptyView(listSize: Int) {
+        binding.noDataText.visibility = if (listSize == 0) View.VISIBLE else View.GONE
     }
 }
