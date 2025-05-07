@@ -1,0 +1,4 @@
+-organizar logica en mainActivity
+	-va muy lento
+	-poco QoL improv.
+	-bugs tales como: el boton de logout para hacer login, 
