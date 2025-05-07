@@ -67,6 +67,7 @@ class MainActivity : AppCompatActivity() {
             Log.i("SESSION", "Token: $token, Username: $username")
 
                 SessionManager(dataStore).clearSession() // <- BORRA LA SESIÓN para probar el login
+            Log.i("Sesion", "Sesión borrada")
 
             if (token == null) {
                 showLoginDialog()
@@ -94,8 +95,14 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        binding.btnUpcoming.setOnClickListener { filterAppointments(upcoming = true) }
-        binding.btnPast.setOnClickListener { filterAppointments(upcoming = false) }
+        binding.btnUpcoming.setOnClickListener {
+            filterAppointments(upcoming = true)
+            Log.i("FILTER", "Filtrando citas futuras")
+        }
+        binding.btnPast.setOnClickListener {
+            filterAppointments(upcoming = false)
+            Log.i("FILTER", "Filtrando citas pasadas")
+        }
 
         binding.mToolbar.inflateMenu(R.menu.main_menu)
         updateToolbarMenu()
@@ -121,6 +128,28 @@ class MainActivity : AppCompatActivity() {
                 else -> false
             }
         }
+
+        binding.swipeRefresh.setOnRefreshListener {
+            lifecycleScope.launch {
+                if (!checkConnection(this@MainActivity)) {
+                    Toast.makeText(this@MainActivity, "Sin conexión", Toast.LENGTH_SHORT).show()
+                    binding.swipeRefresh.isRefreshing = false
+                    return@launch
+                }
+
+                appointmentViewModel.fetchAppointments()
+                appointmentViewModel.appointmentList.collect { appointments ->
+                    allAppointments = appointments
+                    if (isPatient) {
+                        filterAppointments(upcoming = true)
+                    } else {
+                        appointmentAdapter.submitList(allAppointments)
+                    }
+                    binding.swipeRefresh.isRefreshing = false
+                    return@collect
+                }
+            }
+        }
     }
 
     private fun updateToolbarMenu() {
@@ -138,12 +167,10 @@ class MainActivity : AppCompatActivity() {
             appointmentViewModel.appointmentList.collect { appointments ->
                 allAppointments = appointments
                 if (isPatient) {
-                    binding.btnUpcoming.visibility = View.VISIBLE
-                    binding.btnPast.visibility = View.VISIBLE
+                    binding.filterButtons.visibility = View.VISIBLE
                     filterAppointments(upcoming = true)
                 } else {
-                    binding.btnUpcoming.visibility = View.GONE
-                    binding.btnPast.visibility = View.GONE
+                    binding.filterButtons.visibility = View.GONE
                     appointmentAdapter.submitList(allAppointments)
                 }
             }
