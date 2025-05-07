@@ -2,6 +2,7 @@ package edu.olexandergalaktionov.physiocare.ui.adapters
 
 import android.annotation.SuppressLint
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -14,11 +15,12 @@ import java.time.format.DateTimeParseException
 
 class AppointmentAdapter(
     private val onItemClick: (Appointment) -> Unit,
+    private val onDeleteClick: ((Appointment) -> Unit)? = null,
+    private val isPhysio: Boolean = false
 ) : ListAdapter<Appointment, AppointmentAdapter.AppointmentViewHolder>(AppointmentDiffCallback()) {
 
-    class AppointmentViewHolder(
-        private val binding: ItemAppointmentBinding,
-        private val onItemClick: (Appointment) -> Unit
+    inner class AppointmentViewHolder(
+        private val binding: ItemAppointmentBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
         @SuppressLint("SetTextI18n")
@@ -28,8 +30,17 @@ class AppointmentAdapter(
             val fullName = listOfNotNull(appointment.physioName, appointment.physioSurname).joinToString(" ")
             binding.tvPhysio.text = "Fisio: ${if (fullName.isBlank()) "Desconocido" else fullName}"
 
+            // Click al detalle
             binding.root.setOnClickListener {
                 onItemClick(appointment)
+            }
+
+            // Mostrar u ocultar botón eliminar según rol
+            binding.btnDelete.apply {
+                visibility = if (isPhysio) View.VISIBLE else View.GONE
+                setOnClickListener {
+                    onDeleteClick?.invoke(appointment)
+                }
             }
         }
 
@@ -46,7 +57,7 @@ class AppointmentAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AppointmentViewHolder {
         val binding = ItemAppointmentBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return AppointmentViewHolder(binding, onItemClick)
+        return AppointmentViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: AppointmentViewHolder, position: Int) {
