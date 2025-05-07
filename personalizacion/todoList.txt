@@ -2,3 +2,10 @@
 	-va muy lento
 	-poco QoL improv.
 	-bugs tales como: el boton de logout para hacer login, 
+
+todo: 
+
+	-borrar cita
+	-anyadir cita
+	-ver records, detalle record
+	-buscar record
