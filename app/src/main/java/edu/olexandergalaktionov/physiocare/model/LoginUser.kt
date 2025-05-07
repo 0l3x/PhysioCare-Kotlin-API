@@ -14,6 +14,8 @@ data class LoginResponse(
     val token: String?,
     @SerializedName("rol")
     val rol: String?,
+    @SerializedName("usuarioId")
+    val usuarioId: String?,
     @SerializedName("error")
     val error: String?,
 )

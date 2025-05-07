@@ -8,27 +8,36 @@ import androidx.recyclerview.widget.RecyclerView
 import edu.olexandergalaktionov.physiocare.databinding.ItemAppointmentBinding
 import edu.olexandergalaktionov.physiocare.model.Appointment
 
-class AppointmentAdapter : ListAdapter<Appointment, AppointmentAdapter.AppointmentViewHolder>(AppointmentDiffCallback()) {
+class AppointmentAdapter(
+    private val onItemClick: (Appointment) -> Unit,
+) : ListAdapter<Appointment, AppointmentAdapter.AppointmentViewHolder>(AppointmentDiffCallback()) {
 
-    class AppointmentViewHolder(private val binding: ItemAppointmentBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+    class AppointmentViewHolder(
+        private val binding: ItemAppointmentBinding,
+        private val onItemClick: (Appointment) -> Unit
+    ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(appointment: Appointment) {
             binding.tvDate.text = "Fecha: ${appointment.date ?: "Desconocida"}"
             binding.tvDiagnosis.text = "Diagnóstico: ${appointment.diagnosis ?: "N/A"}"
             binding.tvPhysio.text = "Fisio: ${appointment.physio ?: "Desconocido"}"
+
+            binding.root.setOnClickListener {
+                onItemClick(appointment)
+            }
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AppointmentViewHolder {
         val binding = ItemAppointmentBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return AppointmentViewHolder(binding)
+        return AppointmentViewHolder(binding, onItemClick)
     }
 
     override fun onBindViewHolder(holder: AppointmentViewHolder, position: Int) {
         holder.bind(getItem(position))
     }
 }
+
 
 class AppointmentDiffCallback : DiffUtil.ItemCallback<Appointment>() {
     override fun areItemsTheSame(oldItem: Appointment, newItem: Appointment): Boolean {

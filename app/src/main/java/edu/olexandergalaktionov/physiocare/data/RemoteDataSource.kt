@@ -1,9 +1,14 @@
 package edu.olexandergalaktionov.physiocare.data
 
 import android.util.Log
+import edu.olexandergalaktionov.physiocare.model.Appointment
+import edu.olexandergalaktionov.physiocare.model.AppointmentResponse
+import edu.olexandergalaktionov.physiocare.model.AppointmentsResponse
 import edu.olexandergalaktionov.physiocare.model.LoginRequest
 import edu.olexandergalaktionov.physiocare.model.LoginResponse
+import edu.olexandergalaktionov.physiocare.model.RecordResponse
 import edu.olexandergalaktionov.physiocare.model.RecordsResponse
+import retrofit2.HttpException
 
 class RemoteDataSource {
     companion object {
@@ -30,6 +35,46 @@ class RemoteDataSource {
                 throw Exception("Error al obtener records: ${response.message()}")
             }
         }
+
+        //  Obtener expediente del paciente autenticado
+        suspend fun getRecordByPatientId(token: String, patientId: String): RecordResponse {
+            val response = api.getRecordByPatientId("Bearer $token", patientId)
+            if (response.isSuccessful) {
+                return response.body() ?: throw Exception("Respuesta vacía del servidor")
+            } else if (response.code() == 404) {
+                throw HttpException(response) // Para detectar el error 404 concretamente
+            } else {
+                Log.e(TAG, "Error: ${response.message()} | ${response.errorBody()?.string()}")
+                throw Exception("Error al obtener expediente: ${response.message()}")
+            }
+        }
+
+        //  Obtener citas separadas (futuras y pasadas) por paciente
+        suspend fun getAppointmentsByPatientId(token: String, patientId: String): AppointmentsResponse {
+            val response = api.getAppointmentsByPatientId("Bearer $token", patientId)
+            if (response.isSuccessful) {
+                return response.body() ?: throw Exception("Respuesta vacía del servidor")
+            } else {
+                throw Exception("Error al obtener citas del paciente: ${response.message()}")
+            }
+        }
+
+        suspend fun getAppointmentById(token: String, appointmentId: String): Appointment {
+            val response = api.getAppointmentById("Bearer $token", appointmentId )
+            if (response.isSuccessful) {
+                val body = response.body()
+                if (body != null && body.ok == true && body.resultado != null) {
+                    return body.resultado
+                } else {
+                    throw Exception("La cita no se encontró o está vacía")
+                }
+            } else {
+                Log.e(TAG, "Error: ${response.message()} | ${response.errorBody()?.string()}")
+                throw Exception("Error al obtener cita por ID: ${response.message()}")
+            }
+        }
+
+
 
     }
 }

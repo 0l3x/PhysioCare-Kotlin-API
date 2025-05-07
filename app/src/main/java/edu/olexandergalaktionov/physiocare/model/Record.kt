@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName
 
 data class Record(
     @SerializedName("_id") val id: String?,
-    @SerializedName("patient") val patient: String?,
+    @SerializedName("patient") val patient: Patient,
     @SerializedName("medicalRecord") val medicalRecord: String?,
     @SerializedName("appointments") val appointments: List<Appointment>?
 )

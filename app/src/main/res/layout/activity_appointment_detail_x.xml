@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scrollView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:id="@+id/llContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceHeadline6"
+            android:text="@string/appointment_date" />
+
+        <TextView
+            android:id="@+id/tvDiagnosis"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/diagnosis" />
+
+        <TextView
+            android:id="@+id/tvTreatment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/treatment" />
+
+        <TextView
+            android:id="@+id/tvObservations"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/observations" />
+
+        <TextView
+            android:id="@+id/tvPhysio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/physio_id" />
+
+    </LinearLayout>
+</ScrollView>

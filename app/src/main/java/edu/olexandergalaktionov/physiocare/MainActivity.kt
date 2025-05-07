@@ -1,8 +1,8 @@
 package edu.olexandergalaktionov.physiocare
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -15,9 +15,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import edu.olexandergalaktionov.physiocare.data.PhysioCareRepository
 import edu.olexandergalaktionov.physiocare.databinding.ActivityMainBinding
-import edu.olexandergalaktionov.physiocare.model.Appointment
 import edu.olexandergalaktionov.physiocare.model.LoginState
 import edu.olexandergalaktionov.physiocare.ui.AppointmentAdapter
+import edu.olexandergalaktionov.physiocare.ui.AppointmentDetailActivityX
 import edu.olexandergalaktionov.physiocare.ui.AppointmentViewModel
 import edu.olexandergalaktionov.physiocare.ui.AppointmentViewModelFactory
 import edu.olexandergalaktionov.physiocare.ui.MainViewModel
@@ -27,17 +27,15 @@ import edu.olexandergalaktionov.physiocare.utils.checkConnection
 import edu.olexandergalaktionov.physiocare.utils.dataStore
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.time.Instant
-
-import java.time.LocalDate
-import java.time.ZoneOffset
 
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-    private var allAppointments = listOf<Appointment>()
-    private var isPatient = false
     private lateinit var appointmentAdapter: AppointmentAdapter
+
+    private var isPatient = false
+    private var patientId: String? = null
+    private var showingFutureAppointments = true
 
     private val mainViewModel: MainViewModel by viewModels {
         MainViewModelFactory(PhysioCareRepository(SessionManager(dataStore)))
@@ -58,21 +56,40 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        appointmentAdapter = AppointmentAdapter()
+        appointmentAdapter = AppointmentAdapter { appointment ->
+            val intent = Intent(this@MainActivity, AppointmentDetailActivityX::class.java)
+            intent.putExtra("appointmentId", appointment._id)
+            startActivity(intent)
+        }
+
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.adapter = appointmentAdapter
 
-        lifecycleScope.launch {
-            val (token, username) = SessionManager(dataStore).sessionFlow.first()
-            Log.i("SESSION", "Token: $token, Username: $username")
+        binding.btnUpcoming.setOnClickListener {
+            showingFutureAppointments = true
+            appointmentAdapter.submitList(appointmentViewModel.futureAppointments.value)
+        }
 
-                SessionManager(dataStore).clearSession() // <- BORRA LA SESIÓN para probar el login
-            Log.i("Sesion", "Sesión borrada")
+        binding.btnPast.setOnClickListener {
+            showingFutureAppointments = false
+            appointmentAdapter.submitList(appointmentViewModel.pastAppointments.value)
+        }
+
+        lifecycleScope.launch {
+            val token = SessionManager(dataStore).sessionFlow.first().first
+            val role = SessionManager(dataStore).roleFlow.first()
+            val userId = SessionManager(dataStore).userIdFlow.first()
 
             if (token == null) {
                 showLoginDialog()
             } else {
-                loadAppointments()
+                updateToolbarMenu()
+                isPatient = role == "patient"
+                patientId = userId
+
+                if (isPatient && patientId != null) {
+                    appointmentViewModel.fetchAppointmentsByPatient(patientId!!)
+                }
             }
         }
 
@@ -81,10 +98,17 @@ class MainActivity : AppCompatActivity() {
                 when (state) {
                     is LoginState.Loading -> Log.i("LOGIN", "Cargando...")
                     is LoginState.Success -> {
-                        Log.i("LOGIN", "Login OK: ${state.response.token}")
-                        SessionManager(dataStore).saveSession(state.response.token!!, state.response.rol!!)
+                        SessionManager(dataStore).saveSession(
+                            state.response.token!!,
+                            state.response.rol!!,
+                            state.response.usuarioId!!,
+                            state.response.rol
+                        )
                         isPatient = state.response.rol == "patient"
-                        loadAppointments()
+                        patientId = state.response.usuarioId
+                        if (isPatient) {
+                            appointmentViewModel.fetchAppointmentsByPatient(patientId!!)
+                        }
                     }
                     is LoginState.Error -> {
                         Toast.makeText(this@MainActivity, "Login fallido: ${state.message}", Toast.LENGTH_SHORT).show()
@@ -95,13 +119,41 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        binding.btnUpcoming.setOnClickListener {
-            filterAppointments(upcoming = true)
-            Log.i("FILTER", "Filtrando citas futuras")
+        lifecycleScope.launch {
+            appointmentViewModel.futureAppointments.collect {
+                if (isPatient && showingFutureAppointments) {
+                    appointmentAdapter.submitList(it)
+                }
+            }
         }
-        binding.btnPast.setOnClickListener {
-            filterAppointments(upcoming = false)
-            Log.i("FILTER", "Filtrando citas pasadas")
+
+        lifecycleScope.launch {
+            appointmentViewModel.pastAppointments.collect {
+                if (isPatient && !showingFutureAppointments) {
+                    appointmentAdapter.submitList(it)
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            appointmentViewModel.error.collect { err ->
+                err?.let { Toast.makeText(this@MainActivity, it, Toast.LENGTH_LONG).show() }
+            }
+        }
+
+        binding.swipeRefresh.setOnRefreshListener {
+            lifecycleScope.launch {
+                if (!checkConnection(this@MainActivity)) {
+                    Toast.makeText(this@MainActivity, "Sin conexión", Toast.LENGTH_SHORT).show()
+                    binding.swipeRefresh.isRefreshing = false
+                    return@launch
+                }
+
+                patientId?.let {
+                    appointmentViewModel.fetchAppointmentsByPatient(it)
+                }
+                binding.swipeRefresh.isRefreshing = false
+            }
         }
 
         binding.mToolbar.inflateMenu(R.menu.main_menu)
@@ -117,7 +169,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.action_logout -> {
                     lifecycleScope.launch {
                         SessionManager(dataStore).clearSession()
-                        mainViewModel.logout() // si tienes esa función, opcional
+                        mainViewModel.logout()
                         updateToolbarMenu()
                         appointmentAdapter.submitList(emptyList())
                         Toast.makeText(this@MainActivity, "Sesión cerrada", Toast.LENGTH_SHORT).show()
@@ -126,28 +178,6 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 else -> false
-            }
-        }
-
-        binding.swipeRefresh.setOnRefreshListener {
-            lifecycleScope.launch {
-                if (!checkConnection(this@MainActivity)) {
-                    Toast.makeText(this@MainActivity, "Sin conexión", Toast.LENGTH_SHORT).show()
-                    binding.swipeRefresh.isRefreshing = false
-                    return@launch
-                }
-
-                appointmentViewModel.fetchAppointments()
-                appointmentViewModel.appointmentList.collect { appointments ->
-                    allAppointments = appointments
-                    if (isPatient) {
-                        filterAppointments(upcoming = true)
-                    } else {
-                        appointmentAdapter.submitList(allAppointments)
-                    }
-                    binding.swipeRefresh.isRefreshing = false
-                    return@collect
-                }
             }
         }
     }
@@ -160,39 +190,6 @@ class MainActivity : AppCompatActivity() {
             menu.findItem(R.id.action_logout)?.isVisible = token != null
         }
     }
-
-    private fun loadAppointments() {
-        lifecycleScope.launch {
-            appointmentViewModel.fetchAppointments()
-            appointmentViewModel.appointmentList.collect { appointments ->
-                allAppointments = appointments
-                if (isPatient) {
-                    binding.filterButtons.visibility = View.VISIBLE
-                    filterAppointments(upcoming = true)
-                } else {
-                    binding.filterButtons.visibility = View.GONE
-                    appointmentAdapter.submitList(allAppointments)
-                }
-            }
-        }
-    }
-
-    private fun filterAppointments(upcoming: Boolean) {
-        val today = LocalDate.now()
-
-        val filtered = allAppointments.filter {
-            try {
-                val date = Instant.parse(it.date).atZone(ZoneOffset.UTC).toLocalDate()
-                if (upcoming) date.isAfter(today) || date.isEqual(today)
-                else date.isBefore(today)
-            } catch (e: Exception) {
-                false // Si el formato está mal, lo ignoramos
-            }
-        }
-
-        appointmentAdapter.submitList(filtered)
-    }
-
 
     private fun showLoginDialog() {
         val view = layoutInflater.inflate(R.layout.dialog_login, null)

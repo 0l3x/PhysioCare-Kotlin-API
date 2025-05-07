@@ -10,3 +10,16 @@ data class Appointment(
     @SerializedName("physio") val physio: String?,
     @SerializedName("treatment") val treatment: String?
 )
+
+data class AppointmentsResponse(
+    val ok: Boolean,
+    @SerializedName("futuras")
+    val futuras: List<Appointment>,
+    @SerializedName("pasadas")
+    val pasadas: List<Appointment>
+)
+
+data class AppointmentResponse(
+    val ok: Boolean?,
+    val resultado: Appointment?
+)
