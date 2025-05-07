@@ -126,15 +126,24 @@ class MainActivity : AppCompatActivity() {
      * Inicializa el RecyclerView y su adaptador.
      */
     private fun setupRecyclerView() {
-        appointmentAdapter = AppointmentAdapter { appointment ->
-            if (!showingFutureAppointments) {
-                val intent = Intent(this, AppointmentDetailActivity::class.java)
-                intent.putExtra("appointmentId", appointment._id)
-                startActivity(intent)
-            } else {
-                Toast.makeText(this, "Solo puedes ver los detalles de consultas ya realizadas", Toast.LENGTH_SHORT).show()
-            }
-        }
+        appointmentAdapter = AppointmentAdapter(
+            onItemClick = { appointment ->
+                if (!showingFutureAppointments) {
+                    val intent = Intent(this, AppointmentDetailActivity::class.java)
+                    intent.putExtra("appointmentId", appointment._id)
+                    startActivity(intent)
+                } else {
+                    Toast.makeText(this, "Solo puedes ver los detalles de consultas ya realizadas", Toast.LENGTH_SHORT).show()
+                }
+            },
+            onDeleteClick = { appointment ->
+                // Solo ejecutamos si no es null y es rol de fisioterapeuta
+                if (!isPatient && appointment._id != null && patientId != null) {
+                    physioViewModel.deleteAppointmentById(appointment._id, patientId!!)
+                }
+            },
+            isPhysio = !isPatient
+        )
 
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.adapter = appointmentAdapter
