@@ -18,6 +18,8 @@
     <string name="treatment_full">Tratamiento: %1$s</string>
     <string name="observations_full">Observaciones: %1$s</string>
     <string name="physio_id_full">Fisioterapeuta: %1$s</string>
-    <string name="accept">ok</string>
+    <string name="accept">Ok</string>
+    <string name="no_data">No hay citas disponibles</string>
+    <string name="physio_name_full">Fisioterapeuta: %1$s %2$s</string>
 
 </resources>

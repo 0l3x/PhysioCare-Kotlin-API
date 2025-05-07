@@ -19,7 +19,7 @@ class PhysioCareRepository(private val sessionManager: SessionManager) {
         val response = remoteDataSource.login(request)
 
         if (response.token != null) {
-            sessionManager.saveSession(response.token, request.username, response.usuarioId.toString(), response.rol.toString())
+            sessionManager.saveSession(response.token, response.usuarioId.toString(), response.rol.toString())
         } else {
             Log.e(TAG, "Token nulo recibido: ${response.error}")
         }

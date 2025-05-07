@@ -1,4 +1,4 @@
-package edu.olexandergalaktionov.physiocare.ui
+package edu.olexandergalaktionov.physiocare.ui.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -13,7 +13,8 @@ import kotlinx.coroutines.launch
 class MainViewModel(private val repository: PhysioCareRepository) : ViewModel() {
 
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Idle)
-    val loginState: StateFlow<LoginState> = _loginState
+    val loginState: StateFlow<LoginState>
+        get() = _loginState
 
     fun login(username: String, password: String) {
         viewModelScope.launch {

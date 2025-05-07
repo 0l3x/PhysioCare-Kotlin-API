@@ -17,24 +17,22 @@ val Context.dataStore by preferencesDataStore(name = "settings")
 class SessionManager(private val dataStore: DataStore<Preferences>) {
     companion object {
         private val TOKEN_KEY = stringPreferencesKey("token")
-        private val USERNAME_KEY = stringPreferencesKey("username")
         private val ID_KEY = stringPreferencesKey("usuarioId")
         private val ROL_KEY = stringPreferencesKey("rol")
     }
 
     // Flujo de datos para la sesión. Devuelve un par con el token y el nombre de usuario.
     val sessionFlow: Flow<Pair<String?, String?>> = dataStore.data.map { preferences ->
-        preferences[TOKEN_KEY] to preferences[USERNAME_KEY]
+        preferences[TOKEN_KEY] to preferences[ID_KEY]
     }
 
     val userIdFlow: Flow<String?> = dataStore.data.map { it[ID_KEY] }
     val roleFlow: Flow<String?> = dataStore.data.map { it[ROL_KEY] }
 
     // Función para guardar los datos de la sesión.
-    suspend fun saveSession(token: String, username: String, usuarioId: String, rol: String) {
+    suspend fun saveSession(token: String, usuarioId: String, rol: String) {
         dataStore.edit { preferences ->
             preferences[TOKEN_KEY] = token
-            preferences[USERNAME_KEY] = username
             preferences[ID_KEY] = usuarioId
             preferences[ROL_KEY] = rol
         }
