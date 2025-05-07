@@ -56,7 +56,7 @@ class MainActivity : AppCompatActivity() {
                 showLoginDialog()
             } else {
                 if (username != null) {
-                    launchFragmentBasedOnRole(username)
+                    //launchFragmentBasedOnRole(username)
                 }
             }
         }
@@ -68,7 +68,7 @@ class MainActivity : AppCompatActivity() {
                     is LoginState.Success -> {
                         Log.i("LOGIN", "Login OK: ${state.response.token}")
                         SessionManager(dataStore).saveSession(state.response.token!!, state.response.rol!!)
-                        launchFragmentBasedOnRole(state.response.rol)
+                        //launchFragmentBasedOnRole(state.response.rol)
                     }
                     is LoginState.Error -> {
                         Toast.makeText(this@MainActivity, "Login fallido: ${state.message}", Toast.LENGTH_SHORT).show()
@@ -102,19 +102,19 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun launchFragmentBasedOnRole(username: String) {
-        // Aquí iría una llamada a tu endpoint para saber si es physio o patient
-        // Puedes mockear por ahora con una condición
-        val isPhysio = username.contains("torres") // TODO: Reemplaza con validación real
-
-        val fragment = if (isPhysio) {
-            FragmentPhysioDashboard()
-        } else {
-            FragmentPatientDashboard()
-        }
-
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainerView, fragment)
-            .commit()
-    }
+//    private fun launchFragmentBasedOnRole(username: String) {
+//        // Aquí iría una llamada a tu endpoint para saber si es physio o patient
+//        // Puedes mockear por ahora con una condición
+//        val isPhysio = username.contains("torres") // TODO: Reemplaza con validación real
+//
+//        val fragment = if (isPhysio) {
+//            FragmentPhysioDashboard()
+//        } else {
+//            FragmentPatientDashboard()
+//        }
+//
+//        supportFragmentManager.beginTransaction()
+//            .replace(R.id.fragmentContainerView, fragment)
+//            .commit()
+//    }
 }
