@@ -19,7 +19,7 @@ import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
-class AppointmentDetailActivityX : AppCompatActivity() {
+class AppointmentDetailActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAppointmentDetailXBinding
 
     private lateinit var appointmentId: String
@@ -76,7 +76,7 @@ class AppointmentDetailActivityX : AppCompatActivity() {
         lifecycleScope.launch {
             viewModel.error.collect { error ->
                 error?.let {
-                    Toast.makeText(this@AppointmentDetailActivityX, it, Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@AppointmentDetailActivity, it, Toast.LENGTH_LONG).show()
                 }
             }
         }

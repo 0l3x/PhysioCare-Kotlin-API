@@ -3,44 +3,57 @@
     android:id="@+id/scrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:padding="24dp"
+    android:background="?android:attr/windowBackground">
 
     <LinearLayout
         android:id="@+id/llContent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="@drawable/bg_rounded_card"
+        android:elevation="4dp">
 
         <TextView
             android:id="@+id/tvDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceHeadline6"
-            android:text="@string/appointment_date" />
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+            android:textColor="?android:attr/textColorPrimary"
+            android:text="@string/appointment_date"
+            android:layout_marginBottom="16dp" />
 
         <TextView
             android:id="@+id/tvDiagnosis"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/diagnosis" />
+            android:text="@string/diagnosis"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+            android:layout_marginBottom="8dp" />
 
         <TextView
             android:id="@+id/tvTreatment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/treatment" />
+            android:text="@string/treatment"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+            android:layout_marginBottom="8dp" />
 
         <TextView
             android:id="@+id/tvObservations"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/observations" />
+            android:text="@string/observations"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+            android:layout_marginBottom="8dp" />
 
         <TextView
             android:id="@+id/tvPhysio"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/physio_id" />
+            android:text="@string/physio_id"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Body1" />
 
     </LinearLayout>
 </ScrollView>

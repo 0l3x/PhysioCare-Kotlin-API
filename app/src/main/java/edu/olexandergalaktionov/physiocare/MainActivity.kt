@@ -17,7 +17,7 @@ import edu.olexandergalaktionov.physiocare.data.PhysioCareRepository
 import edu.olexandergalaktionov.physiocare.databinding.ActivityMainBinding
 import edu.olexandergalaktionov.physiocare.model.LoginState
 import edu.olexandergalaktionov.physiocare.ui.AppointmentAdapter
-import edu.olexandergalaktionov.physiocare.ui.AppointmentDetailActivityX
+import edu.olexandergalaktionov.physiocare.ui.AppointmentDetailActivity
 import edu.olexandergalaktionov.physiocare.ui.AppointmentViewModel
 import edu.olexandergalaktionov.physiocare.ui.AppointmentViewModelFactory
 import edu.olexandergalaktionov.physiocare.ui.MainViewModel
@@ -57,7 +57,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         appointmentAdapter = AppointmentAdapter { appointment ->
-            val intent = Intent(this@MainActivity, AppointmentDetailActivityX::class.java)
+            val intent = Intent(this@MainActivity, AppointmentDetailActivity::class.java)
             intent.putExtra("appointmentId", appointment._id)
             startActivity(intent)
         }

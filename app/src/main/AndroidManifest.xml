@@ -17,7 +17,7 @@
         android:theme="@style/AppTheme"
         tools:targetApi="31">
         <activity
-            android:name=".ui.AppointmentDetailActivityX"
+            android:name=".ui.AppointmentDetailActivity"
             android:exported="false" />
         <activity
             android:name=".MainActivity"
