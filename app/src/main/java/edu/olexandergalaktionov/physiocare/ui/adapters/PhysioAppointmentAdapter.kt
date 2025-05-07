@@ -1,4 +1,4 @@
-package edu.olexandergalaktionov.physiocare.ui
+package edu.olexandergalaktionov.physiocare.ui.adapters
 
 import android.view.LayoutInflater
 import android.view.ViewGroup

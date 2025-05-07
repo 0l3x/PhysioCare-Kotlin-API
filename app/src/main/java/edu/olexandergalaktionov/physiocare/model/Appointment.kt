@@ -8,6 +8,8 @@ data class Appointment(
     @SerializedName("diagnosis") val diagnosis: String?,
     @SerializedName("observations") val observations: String?,
     @SerializedName("physio") val physio: String?,
+    @SerializedName("physioName") val physioName: String?,
+    @SerializedName("physioSurname") val physioSurname: String?,
     @SerializedName("treatment") val treatment: String?
 )
 

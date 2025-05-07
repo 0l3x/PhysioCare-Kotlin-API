@@ -1,4 +1,4 @@
-package edu.olexandergalaktionov.physiocare.ui
+package edu.olexandergalaktionov.physiocare.ui.appointment.detail
 
 import android.os.Bundle
 import android.widget.Toast
@@ -68,7 +68,12 @@ class AppointmentDetailActivity : AppCompatActivity() {
                     binding.tvDiagnosis.text = getString(R.string.diagnosis_full, it.diagnosis)
                     binding.tvTreatment.text = getString(R.string.treatment_full, it.treatment)
                     binding.tvObservations.text = getString(R.string.observations_full, it.observations)
-                    binding.tvPhysio.text = getString(R.string.physio_id_full, it.physio)
+                    binding.tvPhysio.text = getString(
+                        R.string.physio_name_full,
+                        it.physioName ?: "Nombre",
+                        it.physioSurname ?: "Apellido"
+                    )
+
                 }
             }
         }

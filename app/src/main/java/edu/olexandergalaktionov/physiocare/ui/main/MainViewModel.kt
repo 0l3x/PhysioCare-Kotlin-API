@@ -1,4 +1,4 @@
-package edu.olexandergalaktionov.physiocare.ui
+package edu.olexandergalaktionov.physiocare.ui.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

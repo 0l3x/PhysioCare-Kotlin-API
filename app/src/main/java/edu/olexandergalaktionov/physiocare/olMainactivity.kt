@@ -18,7 +18,7 @@
 //import edu.olexandergalaktionov.physiocare.databinding.ActivityMainBinding
 //import edu.olexandergalaktionov.physiocare.model.LoginState
 //import edu.olexandergalaktionov.physiocare.ui.AppointmentAdapter
-//import edu.olexandergalaktionov.physiocare.ui.AppointmentDetailActivity
+//import edu.olexandergalaktionov.physiocare.ui.detail.AppointmentDetailActivity
 //import edu.olexandergalaktionov.physiocare.ui.AppointmentViewModel
 //import edu.olexandergalaktionov.physiocare.ui.AppointmentViewModelFactory
 //import edu.olexandergalaktionov.physiocare.ui.MainViewModel

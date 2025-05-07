@@ -1,4 +1,4 @@
-package edu.olexandergalaktionov.physiocare
+package edu.olexandergalaktionov.physiocare.ui.main
 
 import android.content.Intent
 import android.os.Bundle
@@ -14,25 +14,34 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import edu.olexandergalaktionov.physiocare.R
 import edu.olexandergalaktionov.physiocare.data.PhysioCareRepository
 import edu.olexandergalaktionov.physiocare.databinding.ActivityMainBinding
 import edu.olexandergalaktionov.physiocare.model.LoginState
-import edu.olexandergalaktionov.physiocare.ui.AppointmentAdapter
-import edu.olexandergalaktionov.physiocare.ui.AppointmentDetailActivity
-import edu.olexandergalaktionov.physiocare.ui.AppointmentViewModel
-import edu.olexandergalaktionov.physiocare.ui.AppointmentViewModelFactory
-import edu.olexandergalaktionov.physiocare.ui.MainViewModel
-import edu.olexandergalaktionov.physiocare.ui.MainViewModelFactory
+import edu.olexandergalaktionov.physiocare.ui.adapters.AppointmentAdapter
+import edu.olexandergalaktionov.physiocare.ui.appointment.detail.AppointmentDetailActivity
+import edu.olexandergalaktionov.physiocare.ui.appointment.AppointmentViewModel
+import edu.olexandergalaktionov.physiocare.ui.appointment.AppointmentViewModelFactory
 import edu.olexandergalaktionov.physiocare.ui.PhysioViewModel
 import edu.olexandergalaktionov.physiocare.ui.PhysioViewModelFactory
 import edu.olexandergalaktionov.physiocare.utils.SessionManager
 import edu.olexandergalaktionov.physiocare.utils.checkConnection
 import edu.olexandergalaktionov.physiocare.utils.dataStore
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-
+/**
+ * Clase MainActivity.kt
+ *
+ * Actividad principal de la app PhysioCare. Gestiona el inicio de sesión,
+ * carga de citas según el rol (paciente o fisioterapeuta), muestra la lista
+ * de citas en un RecyclerView y permite refrescar los datos.
+ *
+ * También controla la visibilidad de los botones de filtro, el texto de
+ * "no hay citas disponibles" y las acciones de login/logout.
+ *
+ * @author Olexandr Galaktionov Tsisar
+ */
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var appointmentAdapter: AppointmentAdapter
@@ -62,6 +71,10 @@ class MainActivity : AppCompatActivity() {
         loadData()
     }
 
+    /**
+     * Méto.do llamado al crear la actividad.
+     * Inicializa el layout, toolbar, listeners, observadores y control de sesión.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -90,6 +103,9 @@ class MainActivity : AppCompatActivity() {
         handleSessionOnLaunch()
     }
 
+    /**
+     * Observa los cambios en el estado de login.
+     */
     private fun handleSessionOnLaunch() {
         lifecycleScope.launch {
             mainViewModel.loginState.collect { state ->
@@ -106,6 +122,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Inicializa el RecyclerView y su adaptador.
+     */
     private fun setupRecyclerView() {
         appointmentAdapter = AppointmentAdapter { appointment ->
             if (!showingFutureAppointments) {
@@ -121,6 +140,9 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerView.adapter = appointmentAdapter
     }
 
+    /**
+     * Configura los botones de filtro y el refresco.
+     */
     private fun setupButtons() {
         binding.btnUpcoming.setOnClickListener {
             showingFutureAppointments = true
@@ -137,6 +159,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Configura el menú superior (toolbar).
+     */
     private fun setupToolbar() {
         binding.mToolbar.inflateMenu(R.menu.main_menu)
         updateToolbarMenu()
@@ -152,6 +177,7 @@ class MainActivity : AppCompatActivity() {
                         mainViewModel.logout()
                         updateToolbarMenu()
                         appointmentAdapter.submitList(emptyList())
+                        binding.filterButtons.visibility = View.GONE
                         Toast.makeText(this@MainActivity, "Sesión cerrada", Toast.LENGTH_SHORT).show()
                     }
                     true
@@ -173,6 +199,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Observa los datos desde los ViewModels y actualiza la vista.
+     */
     private fun observeViewModels() {
         // Observa los cambios en las citas del fisioterapeuta
         lifecycleScope.launch {
@@ -213,6 +242,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Maneja el login exitoso y carga las citas según el rol.
+     *
+     * @param state Estado de éxito tras el login.
+     */
     private fun handleLoginSuccess(state: LoginState.Success) {
         lifecycleScope.launch {
             sessionManager.saveSession(
@@ -237,7 +271,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    //carga de datos
+    /**
+     * Carga las citas según el rol del usuario.
+     */
     private fun loadData() {
         lifecycleScope.launch {
             binding.swipeRefresh.isRefreshing = true
@@ -288,10 +324,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Limpia las citas del adaptador.
+     */
     private fun clearAppointments() {
         appointmentAdapter.submitList(emptyList())
     }
 
+    /**
+     * Actualiza la visibilidad del menú según si hay sesión iniciada.
+     */
     private fun updateToolbarMenu() {
         lifecycleScope.launch {
             val (token, _) = sessionManager.sessionFlow.first()
@@ -301,11 +343,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Muestra el cuadro de diálogo para iniciar sesión.
+     */
     private fun showLoginDialog() {
         val view = layoutInflater.inflate(R.layout.dialog_login, null)
         val etUsername = view.findViewById<EditText>(R.id.etUsername)
         val etPassword = view.findViewById<EditText>(R.id.etPassword)
-
+        updateEmptyView(0)
         AlertDialog.Builder(this)
             .setTitle("Login")
             .setView(view)
@@ -324,6 +369,11 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
+    /**
+     * Muestra el texto de "no hay citas disponibles" si no hay datos.
+     *
+     * @param listSize Tamaño de la lista de citas.
+     */
     private fun updateEmptyView(listSize: Int) {
         binding.noDataText.visibility = if (listSize == 0) View.VISIBLE else View.GONE
     }

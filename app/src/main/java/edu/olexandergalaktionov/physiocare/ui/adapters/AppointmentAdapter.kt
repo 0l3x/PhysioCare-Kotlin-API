@@ -1,4 +1,4 @@
-package edu.olexandergalaktionov.physiocare.ui
+package edu.olexandergalaktionov.physiocare.ui.adapters
 
 import android.annotation.SuppressLint
 import android.view.LayoutInflater
@@ -25,7 +25,8 @@ class AppointmentAdapter(
         fun bind(appointment: Appointment) {
             binding.tvDate.text = "Día: ${formatDate(appointment.date)}"
             binding.tvDiagnosis.text = "Diagnóstico: ${appointment.diagnosis ?: "N/A"}"
-            binding.tvPhysio.text = "Fisio: ${appointment.physio ?: "Desconocido"}"
+            val fullName = listOfNotNull(appointment.physioName, appointment.physioSurname).joinToString(" ")
+            binding.tvPhysio.text = "Fisio: ${if (fullName.isBlank()) "Desconocido" else fullName}"
 
             binding.root.setOnClickListener {
                 onItemClick(appointment)
