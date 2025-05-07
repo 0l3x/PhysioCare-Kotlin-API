@@ -2,6 +2,7 @@ package edu.olexandergalaktionov.physiocare
 
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -11,9 +12,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import edu.olexandergalaktionov.physiocare.data.PhysioCareRepository
 import edu.olexandergalaktionov.physiocare.databinding.ActivityMainBinding
+import edu.olexandergalaktionov.physiocare.model.Appointment
 import edu.olexandergalaktionov.physiocare.model.LoginState
+import edu.olexandergalaktionov.physiocare.ui.AppointmentAdapter
 import edu.olexandergalaktionov.physiocare.ui.AppointmentViewModel
 import edu.olexandergalaktionov.physiocare.ui.AppointmentViewModelFactory
 import edu.olexandergalaktionov.physiocare.ui.MainViewModel
@@ -23,13 +27,17 @@ import edu.olexandergalaktionov.physiocare.utils.checkConnection
 import edu.olexandergalaktionov.physiocare.utils.dataStore
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.time.Instant
 
-import edu.olexandergalaktionov.physiocare.ui.fragment.FragmentPhysioDashboard
-import edu.olexandergalaktionov.physiocare.ui.fragment.FragmentPatientDashboard
+import java.time.LocalDate
+import java.time.ZoneOffset
 
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
+    private var allAppointments = listOf<Appointment>()
+    private var isPatient = false
+    private lateinit var appointmentAdapter: AppointmentAdapter
 
     private val mainViewModel: MainViewModel by viewModels {
         MainViewModelFactory(PhysioCareRepository(SessionManager(dataStore)))
@@ -50,14 +58,17 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
+        appointmentAdapter = AppointmentAdapter()
+        binding.recyclerView.layoutManager = LinearLayoutManager(this)
+        binding.recyclerView.adapter = appointmentAdapter
+
         lifecycleScope.launch {
             val (token, username) = SessionManager(dataStore).sessionFlow.first()
+            Log.i("SESSION", "Token: $token, Username: $username")
             if (token == null) {
                 showLoginDialog()
             } else {
-                if (username != null) {
-                    //launchFragmentBasedOnRole(username)
-                }
+                loadAppointments()
             }
         }
 
@@ -68,7 +79,8 @@ class MainActivity : AppCompatActivity() {
                     is LoginState.Success -> {
                         Log.i("LOGIN", "Login OK: ${state.response.token}")
                         SessionManager(dataStore).saveSession(state.response.token!!, state.response.rol!!)
-                        //launchFragmentBasedOnRole(state.response.rol)
+                        isPatient = state.response.rol == "patient"
+                        loadAppointments()
                     }
                     is LoginState.Error -> {
                         Toast.makeText(this@MainActivity, "Login fallido: ${state.message}", Toast.LENGTH_SHORT).show()
@@ -77,7 +89,45 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
+        binding.btnUpcoming.setOnClickListener { filterAppointments(upcoming = true) }
+        binding.btnPast.setOnClickListener { filterAppointments(upcoming = false) }
     }
+
+    private fun loadAppointments() {
+        lifecycleScope.launch {
+            appointmentViewModel.fetchAppointments()
+            appointmentViewModel.appointmentList.collect { appointments ->
+                allAppointments = appointments
+                if (isPatient) {
+                    binding.btnUpcoming.visibility = View.VISIBLE
+                    binding.btnPast.visibility = View.VISIBLE
+                    filterAppointments(upcoming = true)
+                } else {
+                    binding.btnUpcoming.visibility = View.GONE
+                    binding.btnPast.visibility = View.GONE
+                    appointmentAdapter.submitList(allAppointments)
+                }
+            }
+        }
+    }
+
+    private fun filterAppointments(upcoming: Boolean) {
+        val today = LocalDate.now()
+
+        val filtered = allAppointments.filter {
+            try {
+                val date = Instant.parse(it.date).atZone(ZoneOffset.UTC).toLocalDate()
+                if (upcoming) date.isAfter(today) || date.isEqual(today)
+                else date.isBefore(today)
+            } catch (e: Exception) {
+                false // Si el formato está mal, lo ignoramos
+            }
+        }
+
+        appointmentAdapter.submitList(filtered)
+    }
+
 
     private fun showLoginDialog() {
         val view = layoutInflater.inflate(R.layout.dialog_login, null)
@@ -101,20 +151,4 @@ class MainActivity : AppCompatActivity() {
             .setNegativeButton("Cancelar", null)
             .show()
     }
-
-//    private fun launchFragmentBasedOnRole(username: String) {
-//        // Aquí iría una llamada a tu endpoint para saber si es physio o patient
-//        // Puedes mockear por ahora con una condición
-//        val isPhysio = username.contains("torres") // TODO: Reemplaza con validación real
-//
-//        val fragment = if (isPhysio) {
-//            FragmentPhysioDashboard()
-//        } else {
-//            FragmentPatientDashboard()
-//        }
-//
-//        supportFragmentManager.beginTransaction()
-//            .replace(R.id.fragmentContainerView, fragment)
-//            .commit()
-//    }
 }
