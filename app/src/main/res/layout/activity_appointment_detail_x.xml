@@ -1,59 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/scrollView"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp"
     android:background="?android:attr/windowBackground">
 
-    <LinearLayout
-        android:id="@+id/llContent"
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/mToolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:background="@drawable/bg_rounded_card"
-        android:elevation="4dp">
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:textAlignment="center"
+        app:title="Detalle de la cita"
+        app:titleCentered="true"
+        app:titleTextColor="@android:color/white" />
 
-        <TextView
-            android:id="@+id/tvDate"
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="24dp">
+
+        <LinearLayout
+            android:id="@+id/llContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
-            android:textColor="?android:attr/textColorPrimary"
-            android:text="@string/appointment_date"
-            android:layout_marginBottom="16dp" />
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:background="@drawable/bg_rounded_card"
+            android:elevation="4dp">
 
-        <TextView
-            android:id="@+id/tvDiagnosis"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/diagnosis"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
-            android:layout_marginBottom="8dp" />
+            <!-- Tu contenido aquí (sin cambios) -->
+            <TextView
+                android:id="@+id/tvDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+                android:textColor="?android:attr/textColorPrimary"
+                android:text="@string/appointment_date"
+                android:layout_marginBottom="16dp" />
 
-        <TextView
-            android:id="@+id/tvTreatment"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/treatment"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
-            android:layout_marginBottom="8dp" />
+            <TextView
+                android:id="@+id/tvDiagnosis"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/diagnosis"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+                android:layout_marginBottom="8dp" />
 
-        <TextView
-            android:id="@+id/tvObservations"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/observations"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
-            android:layout_marginBottom="8dp" />
+            <TextView
+                android:id="@+id/tvTreatment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/treatment"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+                android:layout_marginBottom="8dp" />
 
-        <TextView
-            android:id="@+id/tvPhysio"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/physio_id"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Body1" />
+            <TextView
+                android:id="@+id/tvObservations"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/observations"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+                android:layout_marginBottom="8dp" />
 
-    </LinearLayout>
-</ScrollView>
+            <TextView
+                android:id="@+id/tvPhysio"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/physio_id"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Body1" />
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

@@ -57,9 +57,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         appointmentAdapter = AppointmentAdapter { appointment ->
-            val intent = Intent(this@MainActivity, AppointmentDetailActivity::class.java)
-            intent.putExtra("appointmentId", appointment._id)
-            startActivity(intent)
+            if (!showingFutureAppointments) {
+                val intent = Intent(this@MainActivity, AppointmentDetailActivity::class.java)
+                intent.putExtra("appointmentId", appointment._id)
+                startActivity(intent)
+            } else {
+                Toast.makeText(this, "Solo puedes ver los detalles de consultas ya realizadas", Toast.LENGTH_SHORT).show()
+            }
         }
 
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
@@ -179,6 +183,19 @@ class MainActivity : AppCompatActivity() {
 
                 else -> false
             }
+        }
+
+        binding.mToolbar.setNavigationOnClickListener {
+            AlertDialog.Builder(this)
+                .setTitle("Acerca de")
+                .setMessage("""
+                    Autor: Olexandr Galaktionov Tsisar
+                    Grupo: 2º DAM/DAW
+                    Asignatura: Programación Multimedia y Dispositivos Móviles
+                    Práctica: API REST PhysioCare
+                """.trimIndent())
+                .setPositiveButton(getString(R.string.accept), null)
+                .show()
         }
     }
 
