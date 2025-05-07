@@ -3,6 +3,7 @@ package edu.olexandergalaktionov.physiocare
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -22,6 +23,8 @@ import edu.olexandergalaktionov.physiocare.ui.AppointmentViewModel
 import edu.olexandergalaktionov.physiocare.ui.AppointmentViewModelFactory
 import edu.olexandergalaktionov.physiocare.ui.MainViewModel
 import edu.olexandergalaktionov.physiocare.ui.MainViewModelFactory
+import edu.olexandergalaktionov.physiocare.ui.PhysioViewModel
+import edu.olexandergalaktionov.physiocare.ui.PhysioViewModelFactory
 import edu.olexandergalaktionov.physiocare.utils.SessionManager
 import edu.olexandergalaktionov.physiocare.utils.checkConnection
 import edu.olexandergalaktionov.physiocare.utils.dataStore
@@ -37,12 +40,18 @@ class MainActivity : AppCompatActivity() {
     private var patientId: String? = null
     private var showingFutureAppointments = true
 
+    // Gestiona la sesión del usuario
     private val mainViewModel: MainViewModel by viewModels {
         MainViewModelFactory(PhysioCareRepository(SessionManager(dataStore)))
     }
 
+    // Gestiona las citas del paciente
     private val appointmentViewModel: AppointmentViewModel by viewModels {
         AppointmentViewModelFactory(PhysioCareRepository(SessionManager(dataStore)))
+    }
+
+    private val physioViewModel: PhysioViewModel by viewModels {
+        PhysioViewModelFactory(PhysioCareRepository(SessionManager(dataStore)))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,6 +65,7 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
+        // Logica para el RecyclerView, adaptador y clics
         appointmentAdapter = AppointmentAdapter { appointment ->
             if (!showingFutureAppointments) {
                 val intent = Intent(this@MainActivity, AppointmentDetailActivity::class.java)
@@ -69,6 +79,7 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.adapter = appointmentAdapter
 
+        // Botones para cambiar entre citas futuras y pasadas
         binding.btnUpcoming.setOnClickListener {
             showingFutureAppointments = true
             appointmentAdapter.submitList(appointmentViewModel.futureAppointments.value)
@@ -113,12 +124,28 @@ class MainActivity : AppCompatActivity() {
                         if (isPatient) {
                             appointmentViewModel.fetchAppointmentsByPatient(patientId!!)
                         }
+
+                        if (state.response.rol == "physio") {
+                            Log.i("LOGIN", "Cargando citas del fisio, ID: ${state.response.usuarioId}, token: ${state.response.token}, rol: ${state.response.rol}")
+                            physioViewModel.loadAppointmentsForPhysio(state.response.usuarioId)
+
+                            // Oculta los botones de filtrado si es fisioterapeuta
+                            binding.filterButtons.visibility = View.GONE
+                        }
                     }
                     is LoginState.Error -> {
                         Toast.makeText(this@MainActivity, "Login fallido: ${state.message}", Toast.LENGTH_SHORT).show()
                         mainViewModel.resetLoginState()
                     }
                     else -> {}
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            physioViewModel.appointments.collect {
+                if (!isPatient) {
+                    appointmentAdapter.submitList(it)
                 }
             }
         }
@@ -153,9 +180,17 @@ class MainActivity : AppCompatActivity() {
                     return@launch
                 }
 
-                patientId?.let {
-                    appointmentViewModel.fetchAppointmentsByPatient(it)
+                if (isPatient) {
+                    patientId?.let {
+                        appointmentViewModel.fetchAppointmentsByPatient(it)
+                    }
+                } else {
+                    val userId = SessionManager(dataStore).userIdFlow.first()
+                    if (userId != null) {
+                        physioViewModel.loadAppointmentsForPhysio(userId)
+                    }
                 }
+
                 binding.swipeRefresh.isRefreshing = false
             }
         }
@@ -190,9 +225,8 @@ class MainActivity : AppCompatActivity() {
                 .setTitle("Acerca de")
                 .setMessage("""
                     Autor: Olexandr Galaktionov Tsisar
-                    Grupo: 2º DAM/DAW
-                    Asignatura: Programación Multimedia y Dispositivos Móviles
-                    Práctica: API REST PhysioCare
+                    Curso/Grupo: 2º DAM/DAW
+                    Año académico: 2024-2025
                 """.trimIndent())
                 .setPositiveButton(getString(R.string.accept), null)
                 .show()

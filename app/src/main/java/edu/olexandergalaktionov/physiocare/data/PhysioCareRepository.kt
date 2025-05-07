@@ -56,4 +56,17 @@ class PhysioCareRepository(private val sessionManager: SessionManager) {
     }
 
 
+    suspend fun getAppointmentsByPhysioId(physioId: String): List<Appointment> {
+        val (token, _) = sessionManager.sessionFlow.first()
+        return remoteDataSource.getAppointmentsByPhysioId(token!!, physioId)
+    }
+
+
+    suspend fun deleteAppointmentById(appointmentId: String) {
+        val (token, _) = sessionManager.sessionFlow.first()
+        remoteDataSource.deleteAppointmentById(token!!, appointmentId)
+    }
+
+
+
 }

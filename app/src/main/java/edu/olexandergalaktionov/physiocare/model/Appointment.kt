@@ -19,7 +19,14 @@ data class AppointmentsResponse(
     val pasadas: List<Appointment>
 )
 
+// Respuesta de una sola cita, detalle
 data class AppointmentResponse(
     val ok: Boolean?,
     val resultado: Appointment?
 )
+
+data class AppointmentsFlatResponse(
+    val ok: Boolean,
+    val resultado: List<Appointment>
+)
+

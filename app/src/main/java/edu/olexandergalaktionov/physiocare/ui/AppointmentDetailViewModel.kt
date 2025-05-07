@@ -1,4 +1,3 @@
-// AppointmentDetailViewModel.kt
 package edu.olexandergalaktionov.physiocare.ui
 
 import androidx.lifecycle.ViewModel

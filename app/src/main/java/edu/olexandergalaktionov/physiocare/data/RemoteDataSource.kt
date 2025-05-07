@@ -2,7 +2,6 @@ package edu.olexandergalaktionov.physiocare.data
 
 import android.util.Log
 import edu.olexandergalaktionov.physiocare.model.Appointment
-import edu.olexandergalaktionov.physiocare.model.AppointmentResponse
 import edu.olexandergalaktionov.physiocare.model.AppointmentsResponse
 import edu.olexandergalaktionov.physiocare.model.LoginRequest
 import edu.olexandergalaktionov.physiocare.model.LoginResponse
@@ -73,6 +72,30 @@ class RemoteDataSource {
                 throw Exception("Error al obtener cita por ID: ${response.message()}")
             }
         }
+
+
+        suspend fun getAppointmentsByPhysioId(token: String, physioId: String): List<Appointment> {
+            val response = api.getAppointmentsByPhysio("Bearer $token", physioId)
+            if (response.isSuccessful) {
+                val body = response.body()
+                if (body != null && body.ok && body.resultado != null) {
+                    return body.resultado // resultado debe ser List<Appointment>
+                } else {
+                    throw Exception("No se encontraron citas para este fisio")
+                }
+            } else {
+                throw Exception("Error al obtener citas: ${response.message()}")
+            }
+        }
+
+
+        suspend fun deleteAppointmentById(token: String, appointmentId: String) {
+            val response = api.deleteAppointment("Bearer $token", appointmentId)
+            if (!response.isSuccessful) {
+                throw Exception("Error al eliminar la cita: ${response.message()}")
+            }
+        }
+
 
 
 
