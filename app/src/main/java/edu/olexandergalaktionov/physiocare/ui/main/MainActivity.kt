@@ -133,7 +133,7 @@ class MainActivity : AppCompatActivity() {
                     intent.putExtra("appointmentId", appointment._id)
                     startActivity(intent)
                 } else {
-                    Toast.makeText(this, "Solo puedes ver los detalles de consultas ya realizadas", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Solo puedes ver los detalles de consultas ya pasadas", Toast.LENGTH_SHORT).show()
                 }
             },
             onDeleteClick = { appointment ->
@@ -142,7 +142,7 @@ class MainActivity : AppCompatActivity() {
                     physioViewModel.deleteAppointmentById(appointment._id, patientId!!)
                 }
             },
-            isPhysio = !isPatient
+            isPhysio = !isPatient // no se pasa
         )
 
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
