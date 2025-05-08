@@ -32,18 +32,7 @@ import edu.olexandergalaktionov.physiocare.utils.dataStore
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-/**
- * Clase MainActivity.kt
- *
- * Actividad principal de la app PhysioCare. Gestiona el inicio de sesión,
- * carga de citas según el rol (paciente o fisioterapeuta), muestra la lista
- * de citas en un RecyclerView y permite refrescar los datos.
- *
- * También controla la visibilidad de los botones de filtro, el texto de
- * "no hay citas disponibles" y las acciones de login/logout.
- *
- * @author Olexandr Galaktionov Tsisar
- */
+
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var appointmentAdapter: AppointmentAdapter
@@ -73,10 +62,6 @@ class MainActivity : AppCompatActivity() {
         loadData()
     }
 
-    /**
-     * Méto.do llamado al crear la actividad.
-     * Inicializa el layout, toolbar, listeners, observadores y control de sesión.
-     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -141,6 +126,7 @@ class MainActivity : AppCompatActivity() {
 
             physioViewModel.records.collect { records ->
                 if (records.isNotEmpty()) {
+                    Log.i("RECORDS", "Registros recibidos: ${records.size}")
                     // Asignar el adapter con los registros
                     val recordAdapter = RecordAdapter(records)
                     binding.recyclerView.adapter = recordAdapter
@@ -152,9 +138,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Observa los cambios en el estado de login.
-     */
+
     private fun handleSessionOnLaunch() {
         lifecycleScope.launch {
             mainViewModel.loginState.collect { state ->
@@ -171,9 +155,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Inicializa el RecyclerView y su adaptador.
-     */
+
     private fun setupRecyclerView() {
         // Verifica si es fisioterapeuta
         val isPhysio = !isPatient
@@ -202,9 +184,7 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    /**
-     * Configura los botones de filtro y el refresco.
-     */
+
     private fun setupButtons() {
         binding.btnUpcoming.setOnClickListener {
             showingFutureAppointments = true
@@ -221,9 +201,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Configura el menú superior (toolbar).
-     */
+
     private fun setupToolbar() {
         binding.mToolbar.inflateMenu(R.menu.main_menu)
         updateToolbarMenu()
@@ -261,9 +239,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Observa los datos desde los ViewModels y actualiza la vista.
-     */
+
     private fun observeViewModels() {
         // Observa los cambios en las citas del fisioterapeuta
         lifecycleScope.launch {
@@ -317,11 +293,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Maneja el login exitoso y carga las citas según el rol.
-     *
-     * @param state Estado de éxito tras el login.
-     */
+
     private fun handleLoginSuccess(state: LoginState.Success) {
         lifecycleScope.launch {
             sessionManager.saveSession(
@@ -346,9 +318,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Carga las citas según el rol del usuario.
-     */
+
     private fun loadData() {
         lifecycleScope.launch {
             binding.swipeRefresh.isRefreshing = true
@@ -391,7 +361,7 @@ class MainActivity : AppCompatActivity() {
                     binding.filterButtons.visibility = View.GONE
                 }
             } catch (e: retrofit2.HttpException) {
-                if (e.code() == 403) {// Si ocurre un error token
+                if (e.code() == 401) {// Si ocurre un error token
                     sessionManager.clearSession()  // Limpiar la sesión
                     mainViewModel.logout()
                     updateToolbarMenu()
@@ -406,16 +376,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Limpia las citas del adaptador.
-     */
+
     private fun clearAppointments() {
         appointmentAdapter.submitList(emptyList())
     }
 
-    /**
-     * Actualiza la visibilidad del menú según si hay sesión iniciada.
-     */
+
     private fun updateToolbarMenu() {
         lifecycleScope.launch {
             val (token, _) = sessionManager.sessionFlow.first()
@@ -425,14 +391,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Muestra el cuadro de diálogo para iniciar sesión.
-     */
+
     private fun showLoginDialog() {
         val view = layoutInflater.inflate(R.layout.dialog_login, null)
         val etUsername = view.findViewById<EditText>(R.id.etUsername)
         val etPassword = view.findViewById<EditText>(R.id.etPassword)
-        updateEmptyView(0)
         AlertDialog.Builder(this)
             .setTitle("Login")
             .setView(view)
@@ -451,11 +414,6 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    /**
-     * Muestra el texto de "no hay citas disponibles" si no hay datos.
-     *
-     * @param listSize Tamaño de la lista de citas.
-     */
     private fun updateEmptyView(listSize: Int) {
         binding.noDataText.visibility = if (listSize == 0) View.VISIBLE else View.GONE
     }

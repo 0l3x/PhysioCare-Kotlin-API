@@ -1,6 +1,7 @@
 package edu.olexandergalaktionov.physiocare.ui.adapters
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -37,6 +38,7 @@ class AppointmentAdapter(
 
             // Mostrar u ocultar botón eliminar según rol
             binding.btnDelete.apply {
+                Log.i("AppointmentAdapter", "delete actualizado")
                 visibility = if (isPhysio) View.VISIBLE else View.GONE
                 setOnClickListener {
                     onDeleteClick?.invoke(appointment)
