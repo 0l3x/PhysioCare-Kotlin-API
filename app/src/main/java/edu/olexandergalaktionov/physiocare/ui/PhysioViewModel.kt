@@ -12,8 +12,8 @@ import edu.olexandergalaktionov.physiocare.model.Record
 
 class PhysioViewModel(private val repository: PhysioCareRepository) : ViewModel() {
 
-    private val _appointments = MutableStateFlow<List<Appointment>>(emptyList())
-    val appointments: StateFlow<List<Appointment>> = _appointments
+//    private val _appointments = MutableStateFlow<List<Appointment>>(emptyList())
+//    val appointments: StateFlow<List<Appointment>> = _appointments
 
     private val _records = MutableStateFlow<List<Record>>(emptyList())  // Nueva lista de registros
     val records: StateFlow<List<Record>> = _records
@@ -21,17 +21,17 @@ class PhysioViewModel(private val repository: PhysioCareRepository) : ViewModel(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
-    fun loadAppointmentsForPhysio(physioId: String) {
-        viewModelScope.launch {
-            _error.value = null
-            try {
-                val result = repository.getAppointmentsByPhysioId(physioId)
-                _appointments.value = result
-            } catch (e: Exception) {
-                _error.value = e.message
-            }
-        }
-    }
+//    fun loadAppointmentsForPhysio(physioId: String) {
+//        viewModelScope.launch {
+//            _error.value = null
+//            try {
+//                val result = repository.getAppointmentsByPhysioId(physioId)
+//                _appointments.value = result
+//            } catch (e: Exception) {
+//                _error.value = e.message
+//            }
+//        }
+//    }
 
     // Función para cargar registros para el fisioterapeuta
     fun loadRecordsForPhysio() {
@@ -46,17 +46,17 @@ class PhysioViewModel(private val repository: PhysioCareRepository) : ViewModel(
         }
     }
 
-    fun deleteAppointmentById(appointmentId: String, physioId: String) {
-        viewModelScope.launch {
-            _error.value = null
-            try {
-                repository.deleteAppointmentById(appointmentId)
-                loadAppointmentsForPhysio(physioId) // recargar tras eliminar
-            } catch (e: Exception) {
-                _error.value = "No se pudo eliminar: ${e.message}"
-            }
-        }
-    }
+//    fun deleteAppointmentById(appointmentId: String, physioId: String) {
+//        viewModelScope.launch {
+//            _error.value = null
+//            try {
+//                repository.deleteAppointmentById(appointmentId)
+//                loadAppointmentsForPhysio(physioId) // recargar tras eliminar
+//            } catch (e: Exception) {
+//                _error.value = "No se pudo eliminar: ${e.message}"
+//            }
+//        }
+//    }
 
     fun clearError() {
         _error.value = null

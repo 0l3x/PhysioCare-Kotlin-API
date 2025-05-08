@@ -32,7 +32,6 @@
             android:background="@drawable/bg_rounded_card"
             android:elevation="4dp">
 
-            <!-- Tu contenido aquí (sin cambios) -->
             <TextView
                 android:id="@+id/tvDate"
                 android:layout_width="match_parent"
