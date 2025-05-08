@@ -21,26 +21,22 @@ class MainViewModel(private val repository: PhysioCareRepository) : ViewModel() 
             _loginState.value = LoginState.Loading
             try {
                 val response = repository.login(LoginRequest(username, password))
-                if (response.token != null && response.rol != null) {
-                    _loginState.value = LoginState.Success(response)
-                } else {
-                    _loginState.value = LoginState.Error(response.error ?: "Login inválido")
-                }
+                _loginState.value = LoginState.Success(response)
             } catch (e: Exception) {
                 _loginState.value = LoginState.Error(e.message ?: "Error desconocido")
             }
         }
     }
 
-    fun resetLoginState() {
-        _loginState.value = LoginState.Idle
-    }
-
     fun logout() {
-        resetLoginState()
+        viewModelScope.launch {
+            repository.logout()
+            _loginState.value = LoginState.Idle
+        }
     }
 }
 
+@Suppress("UNCHECKED_CAST")
 class MainViewModelFactory(private val repository: PhysioCareRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return MainViewModel(repository) as T

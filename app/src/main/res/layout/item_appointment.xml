@@ -17,7 +17,7 @@
             android:id="@+id/tvDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Fecha"
+            android:text="@string/appointment_date"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -27,7 +27,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Diagnóstico"
+            android:text="@string/diagnosis"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tvDate" />
 
@@ -36,7 +36,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Tratamiento"
+            android:text="@string/treatment"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tvDiagnosis" />
 
@@ -45,7 +45,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Observaciones"
+            android:text="@string/observations"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tvPhysio" />

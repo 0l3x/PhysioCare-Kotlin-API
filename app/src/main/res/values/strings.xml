@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">PhysioCare</string>
-    <string name="fecha">Fecha: AAAA-MM-DD</string>
     <string name="diagnostico">Diagnóstico: Lumbalgia</string>
     <string name="fisio">Fisio: Miguel</string>
     <string name="login">Usuario</string>
@@ -18,8 +17,14 @@
     <string name="treatment_full">Tratamiento: %1$s</string>
     <string name="observations_full">Observaciones: %1$s</string>
     <string name="physio_id_full">Fisioterapeuta: %1$s</string>
-    <string name="accept">Ok</string>
+
+    <string name="accept">OK</string>
     <string name="no_data">No hay data disponible</string>
     <string name="physio_name_full">Fisioterapeuta: %1$s %2$s</string>
+    <string name="no_internet">No hay internet</string>
+    <string name="cancel">Cancelar</string>
+    <string name="not_logged">No hay sesión iniciada</string>
+    <string name="closed_session">Sesión Cerrada</string>
+    <string name="no_appointments">No hay citas disponibles</string>
 
 </resources>

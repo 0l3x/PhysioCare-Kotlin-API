@@ -19,6 +19,9 @@ class AppointmentViewModel(private val repository: PhysioCareRepository) : ViewM
     private val _pastAppointments = MutableStateFlow<List<Appointment>>(emptyList())
     val pastAppointments: StateFlow<List<Appointment>> = _pastAppointments
 
+    private val _appointments = MutableStateFlow<List<Appointment>>(emptyList())
+    val appointments: StateFlow<List<Appointment>> = _appointments
+
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
@@ -63,6 +66,30 @@ class AppointmentViewModel(private val repository: PhysioCareRepository) : ViewM
                 _error.value = "Error al cargar citas: ${e.message}"
                 _futureAppointments.value = emptyList()
                 _pastAppointments.value = emptyList()
+            }
+        }
+    }
+
+    fun loadAppointmentsForPhysio(physioId: String) {
+        viewModelScope.launch {
+            _error.value = null
+            try {
+                val result = repository.getAppointmentsByPhysioId(physioId)
+                _appointments.value = result
+            } catch (e: Exception) {
+                _error.value = e.message
+            }
+        }
+    }
+
+    fun deleteAppointmentById(appointmentId: String, physioId: String) {
+        viewModelScope.launch {
+            _error.value = null
+            try {
+                repository.deleteAppointmentById(appointmentId)
+                loadAppointmentsForPhysio(physioId) // recargar tras eliminar
+            } catch (e: Exception) {
+                _error.value = "No se pudo eliminar: ${e.message}"
             }
         }
     }

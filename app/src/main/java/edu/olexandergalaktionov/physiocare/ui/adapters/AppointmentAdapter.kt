@@ -17,7 +17,7 @@ import java.time.format.DateTimeParseException
 class AppointmentAdapter(
     private val onItemClick: (Appointment) -> Unit,
     private val onDeleteClick: ((Appointment) -> Unit)? = null,
-    private val isPhysio: Boolean = false
+    var isPhysio: Boolean
 ) : ListAdapter<Appointment, AppointmentAdapter.AppointmentViewHolder>(AppointmentDiffCallback()) {
 
     inner class AppointmentViewHolder(
@@ -30,6 +30,7 @@ class AppointmentAdapter(
             binding.tvDiagnosis.text = "Diagnóstico: ${appointment.diagnosis ?: "N/A"}"
             val fullName = listOfNotNull(appointment.physioName, appointment.physioSurname).joinToString(" ")
             binding.tvPhysio.text = "Fisio: ${if (fullName.isBlank()) "Desconocido" else fullName}"
+            binding.tvObservations.text = "Observaciones: ${appointment.observations ?: "N/A"}"
 
             // Click al detalle
             binding.root.setOnClickListener {
@@ -38,7 +39,6 @@ class AppointmentAdapter(
 
             // Mostrar u ocultar botón eliminar según rol
             binding.btnDelete.apply {
-                Log.i("AppointmentAdapter", "delete actualizado")
                 visibility = if (isPhysio) View.VISIBLE else View.GONE
                 setOnClickListener {
                     onDeleteClick?.invoke(appointment)
@@ -67,10 +67,9 @@ class AppointmentAdapter(
     }
 }
 
-
 class AppointmentDiffCallback : DiffUtil.ItemCallback<Appointment>() {
     override fun areItemsTheSame(oldItem: Appointment, newItem: Appointment): Boolean {
-        return oldItem._id == newItem._id // usa tu campo identificador único
+        return oldItem._id == newItem._id
     }
 
     override fun areContentsTheSame(oldItem: Appointment, newItem: Appointment): Boolean {

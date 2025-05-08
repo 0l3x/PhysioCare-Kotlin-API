@@ -32,3 +32,5 @@ fun checkConnection(context: Context) : Boolean {
 
     return false
 }
+
+var isPhysio = false
