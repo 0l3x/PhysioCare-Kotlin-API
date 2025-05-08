@@ -306,8 +306,12 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             physioViewModel.records.collect { records ->
                 if (records.isNotEmpty()) {
-                    // Mostrar los registros en la UI
-                    // record adapter
+                    // Asignar el adaptador con los registros
+                    val recordAdapter = RecordAdapter(records)
+                    binding.recyclerView.adapter = recordAdapter
+                    binding.noDataText.visibility = View.GONE
+                } else {
+                    binding.noDataText.visibility = View.VISIBLE
                 }
             }
         }
