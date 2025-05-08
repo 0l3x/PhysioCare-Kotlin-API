@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import edu.olexandergalaktionov.physiocare.data.PhysioCareRepository
 import edu.olexandergalaktionov.physiocare.model.Appointment
+import edu.olexandergalaktionov.physiocare.utils.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -55,8 +56,9 @@ class AppointmentViewModel(private val repository: PhysioCareRepository) : ViewM
                     _pastAppointments.value = emptyList()
                 }
             } catch (e: Exception) {
-                Log.e("ERROR", "Error en fetchAppointmentsByPatient: ${e.message}")
+                Log.e("ERRORAppointmentVM", "Error en fetchAppointmentsByPatient: ${e.message}")
                 e.printStackTrace()
+
 
                 _error.value = "Error al cargar citas: ${e.message}"
                 _futureAppointments.value = emptyList()

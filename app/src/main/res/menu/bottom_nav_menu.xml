@@ -1,0 +1,10 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_appointments"
+        android:icon="@drawable/ic_appointments"
+        android:title="Citas" />
+    <item
+        android:id="@+id/nav_records"
+        android:icon="@drawable/ic_records"
+        android:title="Registros" />
+</menu>

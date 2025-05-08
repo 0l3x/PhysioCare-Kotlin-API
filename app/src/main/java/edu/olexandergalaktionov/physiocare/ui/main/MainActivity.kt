@@ -14,6 +14,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import edu.olexandergalaktionov.physiocare.R
 import edu.olexandergalaktionov.physiocare.data.PhysioCareRepository
 import edu.olexandergalaktionov.physiocare.databinding.ActivityMainBinding
@@ -24,6 +25,7 @@ import edu.olexandergalaktionov.physiocare.ui.appointment.AppointmentViewModel
 import edu.olexandergalaktionov.physiocare.ui.appointment.AppointmentViewModelFactory
 import edu.olexandergalaktionov.physiocare.ui.PhysioViewModel
 import edu.olexandergalaktionov.physiocare.ui.PhysioViewModelFactory
+import edu.olexandergalaktionov.physiocare.ui.adapters.RecordAdapter
 import edu.olexandergalaktionov.physiocare.utils.SessionManager
 import edu.olexandergalaktionov.physiocare.utils.checkConnection
 import edu.olexandergalaktionov.physiocare.utils.dataStore
@@ -101,6 +103,53 @@ class MainActivity : AppCompatActivity() {
         setupToolbar()
         observeViewModels()
         handleSessionOnLaunch()
+        setupBottomNavigationView()
+    }
+
+    private fun setupBottomNavigationView() {
+        val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+        bottomNavigationView.setOnNavigationItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_appointments -> {
+                    showAppointments()  // Muestra las citas
+                    true
+                }
+                R.id.nav_records -> {
+                    showRecords()  // Muestra los registros
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    private fun showAppointments() {
+        // Lógica para mostrar citas
+        loadData()
+        Toast.makeText(this, "Citas seleccionadas", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showRecords() {
+        // Lógica para mostrar registros
+        loadRecords()
+        Toast.makeText(this, "Registros seleccionados", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun loadRecords() {
+        lifecycleScope.launch {
+            physioViewModel.loadRecordsForPhysio()  // Cargar los registros del fisioterapeuta
+
+            physioViewModel.records.collect { records ->
+                if (records.isNotEmpty()) {
+                    // Asignar el adapter con los registros
+                    val recordAdapter = RecordAdapter(records)
+                    binding.recyclerView.adapter = recordAdapter
+                    binding.noDataText.visibility = View.GONE
+                } else {
+                    binding.noDataText.visibility = View.VISIBLE
+                }
+            }
+        }
     }
 
     /**
@@ -126,6 +175,9 @@ class MainActivity : AppCompatActivity() {
      * Inicializa el RecyclerView y su adaptador.
      */
     private fun setupRecyclerView() {
+        // Verifica si es fisioterapeuta
+        val isPhysio = !isPatient
+
         appointmentAdapter = AppointmentAdapter(
             onItemClick = { appointment ->
                 if (!showingFutureAppointments) {
@@ -133,21 +185,22 @@ class MainActivity : AppCompatActivity() {
                     intent.putExtra("appointmentId", appointment._id)
                     startActivity(intent)
                 } else {
-                    Toast.makeText(this, "Solo puedes ver los detalles de consultas ya pasadas", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Solo puedes ver los detalles de consultas ya realizadas", Toast.LENGTH_SHORT).show()
                 }
             },
             onDeleteClick = { appointment ->
                 // Solo ejecutamos si no es null y es rol de fisioterapeuta
-                if (!isPatient && appointment._id != null && patientId != null) {
+                if (isPhysio && appointment._id != null && patientId != null) {
                     physioViewModel.deleteAppointmentById(appointment._id, patientId!!)
                 }
             },
-            isPhysio = !isPatient // no se pasa
+            isPhysio = isPhysio // Pasa el valor de isPhysio //TODO
         )
 
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.adapter = appointmentAdapter
     }
+
 
     /**
      * Configura los botones de filtro y el refresco.
@@ -249,6 +302,15 @@ class MainActivity : AppCompatActivity() {
                 it?.let { msg -> Toast.makeText(this@MainActivity, msg, Toast.LENGTH_LONG).show() }
             }
         }
+
+        lifecycleScope.launch {
+            physioViewModel.records.collect { records ->
+                if (records.isNotEmpty()) {
+                    // Mostrar los registros en la UI
+                    // record adapter
+                }
+            }
+        }
     }
 
     /**
@@ -324,9 +386,16 @@ class MainActivity : AppCompatActivity() {
                     Log.i("LOAD_DATA", "Citas del fisioterapeuta cargadas")
                     binding.filterButtons.visibility = View.GONE
                 }
-            } catch (e: Exception) {
-                Log.e("LOAD_DATA", "Error: ${e.message}")
-                Toast.makeText(this@MainActivity, "Error al cargar datos", Toast.LENGTH_SHORT).show()
+            } catch (e: retrofit2.HttpException) {
+                if (e.code() == 403) {// Si ocurre un error token
+                    sessionManager.clearSession()  // Limpiar la sesión
+                    mainViewModel.logout()
+                    updateToolbarMenu()
+                    showLoginDialog()  // Mostrar el cuadro de diálogo de login
+                } else {
+                    Log.e("LOAD_DATA", "Error: ${e.message}")
+                    Toast.makeText(this@MainActivity, "Error al cargar datos", Toast.LENGTH_SHORT).show()
+                }
             } finally {
                 binding.swipeRefresh.isRefreshing = false
             }
