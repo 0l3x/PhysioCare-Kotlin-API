@@ -2,6 +2,11 @@ package edu.olexandergalaktionov.physiocare.model
 
 import com.google.gson.annotations.SerializedName
 
+/**
+ * Request para iniciar sesión
+ * @param username Nombre de usuario
+ * @param password Contraseña
+ */
 data class LoginRequest(
     @SerializedName("login")
     val username: String,
@@ -9,6 +14,13 @@ data class LoginRequest(
     val password: String
 )
 
+/**
+ * Respuesta de la API al iniciar sesión
+ * @param token Token de autenticación
+ * @param rol Rol del usuario (paciente o fisioterapeuta)
+ * @param usuarioId ID del usuario
+ * @param error Mensaje de error (si lo hay)
+ */
 data class LoginResponse(
     @SerializedName("token")
     val token: String?,
@@ -20,6 +32,13 @@ data class LoginResponse(
     val error: String?,
 )
 
+/**
+ * Estado de la pantalla de inicio de sesión
+ * @param Idle Estado inicial
+ * @param Loading Estado de carga
+ * @param Success Estado de éxito
+ * @param Error Estado de error
+ */
 sealed class LoginState {
     object Idle : LoginState()
     object Loading : LoginState()
