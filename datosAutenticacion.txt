@@ -1,0 +1,17 @@
+- - Rol: Patient - - >
+
+login: Maria
+password: 123
+
+login: carlos90
+password: 123
+
+
+
+-- Rol: Physio - - >
+
+login: Pedro
+password: 1234
+
+login: laura.torres
+password: 1234

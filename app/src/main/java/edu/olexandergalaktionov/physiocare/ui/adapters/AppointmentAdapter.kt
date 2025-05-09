@@ -28,7 +28,7 @@ class AppointmentAdapter(
         fun bind(appointment: Appointment) {
             binding.tvDate.text = "Día: ${formatDate(appointment.date)}"
             val fullName = listOfNotNull(appointment.physioName, appointment.physioSurname).joinToString(" ")
-            binding.tvPhysio.text = "Fisio: ${if (fullName.isBlank()) "Desconocido" else fullName}"
+            binding.tvPhysio.text = "Fisio: ${if (fullName.isBlank()) appointment.physio else fullName}"
 
             // Click al detalle
             binding.root.setOnClickListener {

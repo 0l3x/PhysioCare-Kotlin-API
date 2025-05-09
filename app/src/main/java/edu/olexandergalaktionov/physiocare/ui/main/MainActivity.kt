@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.EditText
+import android.widget.SearchView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -19,7 +20,6 @@ import edu.olexandergalaktionov.physiocare.data.PhysioCareRepository
 import edu.olexandergalaktionov.physiocare.databinding.ActivityMainBinding
 import edu.olexandergalaktionov.physiocare.model.Appointment
 import edu.olexandergalaktionov.physiocare.model.LoginState
-import edu.olexandergalaktionov.physiocare.model.Record
 import edu.olexandergalaktionov.physiocare.ui.RecordDetailActivity
 import edu.olexandergalaktionov.physiocare.ui.RecordViewModel
 import edu.olexandergalaktionov.physiocare.ui.RecordViewModelFactory
@@ -34,6 +34,7 @@ import edu.olexandergalaktionov.physiocare.utils.dataStore
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import edu.olexandergalaktionov.physiocare.utils.isPhysio
+import edu.olexandergalaktionov.physiocare.model.Record
 
 /**
  * TODO:
@@ -63,11 +64,11 @@ import edu.olexandergalaktionov.physiocare.utils.isPhysio
  */
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-
     private lateinit var appointmentAdapter: AppointmentAdapter
-    //private lateinit var recordAdapter: RecordAdapter
 
     private var showingFutureAppointments = true
+
+    private var allRecords: List<Record> = emptyList()
 
     private var currentView: ViewType = ViewType.APPOINTMENTS
 
@@ -180,6 +181,7 @@ class MainActivity : AppCompatActivity() {
                         mainViewModel.logout()
                         binding.filterButtons.visibility = View.GONE
                         binding.bottomNavigation.visibility = View.GONE
+                        binding.searchViewRecords.visibility = View.GONE
                         clearAppointments(getString(R.string.logout))
                         showLoginDialog()
                     }
@@ -217,12 +219,14 @@ class MainActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.nav_appointments -> {
                     currentView = ViewType.APPOINTMENTS
+                    binding.searchViewRecords.visibility = View.GONE
                     setupAppointmentAdapter()
                     loadData()
                     true
                 }
                 R.id.nav_records -> {
                     currentView = ViewType.RECORDS
+                    binding.searchViewRecords.visibility = View.VISIBLE
                     lifecycleScope.launch {
                         try {
                             val records = recordViewModel.getAllRecords()
@@ -323,20 +327,31 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     ViewType.RECORDS -> {
-                        if (token.isNullOrEmpty()) {
+                        if (token.isEmpty()) {
                             clearAppointments(getString(R.string.not_logged))
                             return@launch
                         }
 
+                        binding.searchViewRecords.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                            override fun onQueryTextSubmit(query: String?): Boolean {
+                                return false
+                            }
+
+                            override fun onQueryTextChange(newText: String?): Boolean {
+                                filterRecords(newText.orEmpty())
+                                return true
+                            }
+                        })
+
                         try {
-                            val records = recordViewModel.getAllRecords()
-                            val recordAdapter = RecordAdapter(records) { selectedRecord ->
+                            allRecords = recordViewModel.getAllRecords()
+                            val recordAdapter = RecordAdapter(allRecords) { selectedRecord ->
                                 val intent = Intent(this@MainActivity, RecordDetailActivity::class.java)
                                 intent.putExtra("recordId", selectedRecord.id)
                                 startActivity(intent)
                             }
                             binding.recyclerView.adapter = recordAdapter
-                            binding.noDataText.visibility = if (records.isEmpty()) View.VISIBLE else View.GONE
+                            binding.noDataText.visibility = if (allRecords.isEmpty()) View.VISIBLE else View.GONE
                         } catch (e: Exception) {
                             clearAppointments("Error al obtener registros: ${e.message}")
                         }
@@ -357,6 +372,20 @@ class MainActivity : AppCompatActivity() {
                 binding.swipeRefresh.isRefreshing = false
             }
         }
+    }
+
+    private fun filterRecords(query: String) {
+        val filtered = allRecords.filter {
+            it.patient.name?.contains(query, ignoreCase = true) == true ||
+            it.patient.surname?.contains(query, ignoreCase = true) == true
+        }
+        val adapter = RecordAdapter(filtered) { selectedRecord ->
+            val intent = Intent(this@MainActivity, RecordDetailActivity::class.java)
+            intent.putExtra("recordId", selectedRecord.id)
+            startActivity(intent)
+        }
+        binding.recyclerView.adapter = adapter
+        binding.noDataText.visibility = if (filtered.isEmpty()) View.VISIBLE else View.GONE
     }
 
     private fun observeAppointments() {

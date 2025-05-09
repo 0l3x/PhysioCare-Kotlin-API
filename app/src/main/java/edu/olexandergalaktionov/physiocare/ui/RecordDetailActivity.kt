@@ -64,7 +64,7 @@ class RecordDetailActivity : AppCompatActivity() {
             loadAppointments()
         }
 
-// Carga inicial
+        // Carga inicial
         loadAppointments()
 
         setSupportActionBar(binding.toolbar)
@@ -122,7 +122,15 @@ class RecordDetailActivity : AppCompatActivity() {
                     .create(RecordViewModel::class.java)
                     .getRecordByPatientId(recordId!!)
                 if (record != null) {
-                    appointmentAdapter.submitList(record.appointments)
+                    val allPhysios = appointmentViewModel.getAllPhysios()
+                    val physioMap = allPhysios.associateBy({ it._id }, { it.fullName })
+
+                    val enrichedAppointments = record.appointments?.map { appointment ->
+                        appointment.copy(
+                            physio = physioMap[appointment.physio] ?: "Desconocido"
+                        )
+                    }
+                    appointmentAdapter.submitList(enrichedAppointments)
 
                     // Mostrar datos del paciente
                     binding.tvPatientName.text = "Nombre: ${record.patient.name} ${record.patient.surname}"
