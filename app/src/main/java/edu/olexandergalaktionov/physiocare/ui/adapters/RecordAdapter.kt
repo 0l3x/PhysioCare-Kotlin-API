@@ -8,12 +8,11 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import edu.olexandergalaktionov.physiocare.R
 import edu.olexandergalaktionov.physiocare.model.Record
-import edu.olexandergalaktionov.physiocare.ui.RecordDetailActivity
+import edu.olexandergalaktionov.physiocare.ui.record.RecordDetailActivity
 
 class RecordAdapter(
-        private val records: List<Record>,
-        private val onItemClick: (Record) -> Unit
-    ) : RecyclerView.Adapter<RecordAdapter.RecordViewHolder>() {
+    private val records: List<Record>
+) : RecyclerView.Adapter<RecordAdapter.RecordViewHolder>() {
 
     inner class RecordViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val patientName: TextView = itemView.findViewById(R.id.tvPatientName)

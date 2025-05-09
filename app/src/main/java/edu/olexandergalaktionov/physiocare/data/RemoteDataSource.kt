@@ -7,18 +7,23 @@ import edu.olexandergalaktionov.physiocare.model.AppointmentsResponse
 import edu.olexandergalaktionov.physiocare.model.LoginRequest
 import edu.olexandergalaktionov.physiocare.model.LoginResponse
 import edu.olexandergalaktionov.physiocare.model.Physio
-import edu.olexandergalaktionov.physiocare.model.PhysiosResponse
 import edu.olexandergalaktionov.physiocare.model.RecordResponse
 import edu.olexandergalaktionov.physiocare.model.RecordsResponse
-import edu.olexandergalaktionov.physiocare.model.Record
 import retrofit2.HttpException
 
+/**
+ * Clase Remota que maneja la comunicación con el servidor remoto.
+ * @author Olexandr Galaktionov Tsisar
+ */
 class RemoteDataSource {
     companion object {
         val TAG = RemoteDataSource::class.java.simpleName
 
         private val api = Retrofit2Api.getRetrofit2Api()
 
+        /**
+         * Realiza la autenticación del usuario y devuelve el token de acceso.
+         */
         suspend fun login(request: LoginRequest): LoginResponse {
             val response = api.login(request)
             if (response.isSuccessful) {
@@ -30,6 +35,9 @@ class RemoteDataSource {
             }
         }
 
+        /**
+         * Obtiene todos los registros de pacientes.
+         */
         suspend fun getAllRecords(token: String): RecordsResponse {
             val response = api.getAllRecords("Bearer $token")
             if (response.isSuccessful) {
@@ -41,7 +49,9 @@ class RemoteDataSource {
             }
         }
 
-        //  Obtener expediente del paciente autenticado
+        /**
+         * Obtiene el expediente del paciente autenticado.
+         */
         suspend fun getRecordByPatientId(token: String, patientId: String): RecordResponse {
             val response = api.getRecordByPatientId("Bearer $token", patientId)
             if (response.isSuccessful) {
@@ -54,7 +64,9 @@ class RemoteDataSource {
             }
         }
 
-        //  Obtener citas separadas (futuras y pasadas) por paciente
+        /**
+         * Obtiene las citas separadas (futuras y pasadas) por paciente.
+         */
         suspend fun getAppointmentsByPatientId(token: String, patientId: String): AppointmentsResponse {
             val response = api.getAppointmentsByPatientId("Bearer $token", patientId)
             if (response.isSuccessful) {
@@ -64,6 +76,9 @@ class RemoteDataSource {
             }
         }
 
+        /**
+         * Obtiene una cita por su ID.
+         */
         suspend fun getAppointmentById(token: String, appointmentId: String): Appointment {
             val response = api.getAppointmentById("Bearer $token", appointmentId )
             if (response.isSuccessful) {
@@ -79,13 +94,15 @@ class RemoteDataSource {
             }
         }
 
-
+        /**
+         * Obtiene todas las citas de un fisioterapeuta (propias) por su ID.
+         */
         suspend fun getAppointmentsByPhysioId(token: String, physioId: String): List<Appointment> {
             val response = api.getAppointmentsByPhysio("Bearer $token", physioId)
             if (response.isSuccessful) {
                 val body = response.body()
-                if (body != null && body.ok && body.resultado != null) {
-                    return body.resultado // resultado debe ser List<Appointment>
+                if (body != null && body.ok) {
+                    return body.resultado
                 } else {
                     throw Exception("No se encontraron citas para este fisio")
                 }
@@ -94,7 +111,9 @@ class RemoteDataSource {
             }
         }
 
-
+        /**
+         * Elimina una cita por su ID.
+         */
         suspend fun deleteAppointmentById(token: String, appointmentId: String) {
             val response = api.deleteAppointment("Bearer $token", appointmentId)
             if (!response.isSuccessful) {
@@ -102,7 +121,9 @@ class RemoteDataSource {
             }
         }
 
-
+        /**
+         * Obtiene todos los fisioterapeutas.
+         */
         suspend fun getAllPhysios(token: String): List<Physio> {
             val response = api.getAllPhysios("Bearer $token")
             if (response.isSuccessful) {
@@ -114,11 +135,13 @@ class RemoteDataSource {
                 }
             } else {
                 Log.e(TAG, "Error: ${response.message()} | ${response.errorBody()?.string()}")
-                Log.e(TAG, "Error: ${response.errorBody()?.string()}")
                 throw Exception("Error al obtener fisioterapeutas: ${response.message()}")
             }
         }
 
+        /**
+         * Guarda una cita en el expediente del paciente.
+         */
         suspend fun postAppointmentToRecord(
             token: String,
             recordId: String,
@@ -130,7 +153,5 @@ class RemoteDataSource {
             }
             return response.isSuccessful
         }
-
-
     }
 }

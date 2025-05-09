@@ -20,9 +20,8 @@ import edu.olexandergalaktionov.physiocare.data.PhysioCareRepository
 import edu.olexandergalaktionov.physiocare.databinding.ActivityMainBinding
 import edu.olexandergalaktionov.physiocare.model.Appointment
 import edu.olexandergalaktionov.physiocare.model.LoginState
-import edu.olexandergalaktionov.physiocare.ui.RecordDetailActivity
-import edu.olexandergalaktionov.physiocare.ui.RecordViewModel
-import edu.olexandergalaktionov.physiocare.ui.RecordViewModelFactory
+import edu.olexandergalaktionov.physiocare.ui.record.RecordViewModel
+import edu.olexandergalaktionov.physiocare.ui.record.RecordViewModelFactory
 import edu.olexandergalaktionov.physiocare.ui.adapters.AppointmentAdapter
 import edu.olexandergalaktionov.physiocare.ui.adapters.RecordAdapter
 import edu.olexandergalaktionov.physiocare.ui.appointment.detail.AppointmentDetailActivity
@@ -231,11 +230,7 @@ class MainActivity : AppCompatActivity() {
                         try {
                             val records = recordViewModel.getAllRecords()
                             Log.i("RECORDS", "Records: $records")
-                            val recordAdapter = RecordAdapter(records) { selectedRecord ->
-                                val intent = Intent(this@MainActivity, RecordDetailActivity::class.java)
-                                intent.putExtra("recordId", selectedRecord.id)
-                                startActivity(intent)
-                            }
+                            val recordAdapter = RecordAdapter(records)
                             binding.recyclerView.adapter = recordAdapter
                             binding.noDataText.visibility = if (records.isEmpty()) View.VISIBLE else View.GONE
                         } catch (e: Exception) {
@@ -345,11 +340,7 @@ class MainActivity : AppCompatActivity() {
 
                         try {
                             allRecords = recordViewModel.getAllRecords()
-                            val recordAdapter = RecordAdapter(allRecords) { selectedRecord ->
-                                val intent = Intent(this@MainActivity, RecordDetailActivity::class.java)
-                                intent.putExtra("recordId", selectedRecord.id)
-                                startActivity(intent)
-                            }
+                            val recordAdapter = RecordAdapter(allRecords)
                             binding.recyclerView.adapter = recordAdapter
                             binding.noDataText.visibility = if (allRecords.isEmpty()) View.VISIBLE else View.GONE
                         } catch (e: Exception) {
@@ -379,11 +370,7 @@ class MainActivity : AppCompatActivity() {
             it.patient.name?.contains(query, ignoreCase = true) == true ||
             it.patient.surname?.contains(query, ignoreCase = true) == true
         }
-        val adapter = RecordAdapter(filtered) { selectedRecord ->
-            val intent = Intent(this@MainActivity, RecordDetailActivity::class.java)
-            intent.putExtra("recordId", selectedRecord.id)
-            startActivity(intent)
-        }
+        val adapter = RecordAdapter(filtered)
         binding.recyclerView.adapter = adapter
         binding.noDataText.visibility = if (filtered.isEmpty()) View.VISIBLE else View.GONE
     }
@@ -449,7 +436,7 @@ class MainActivity : AppCompatActivity() {
                 appointmentAdapter.submitList(emptyList())
             }
             ViewType.RECORDS -> {
-                binding.recyclerView.adapter = RecordAdapter(emptyList()) {}
+                binding.recyclerView.adapter = RecordAdapter(emptyList())
             }
         }
         binding.noDataText.visibility = View.VISIBLE

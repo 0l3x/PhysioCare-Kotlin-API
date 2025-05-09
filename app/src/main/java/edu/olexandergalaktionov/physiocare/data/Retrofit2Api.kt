@@ -6,7 +6,6 @@ import edu.olexandergalaktionov.physiocare.model.AppointmentsFlatResponse
 import edu.olexandergalaktionov.physiocare.model.AppointmentsResponse
 import edu.olexandergalaktionov.physiocare.model.LoginRequest
 import edu.olexandergalaktionov.physiocare.model.LoginResponse
-import edu.olexandergalaktionov.physiocare.model.Physio
 import edu.olexandergalaktionov.physiocare.model.PhysiosResponse
 import edu.olexandergalaktionov.physiocare.model.RecordResponse
 import edu.olexandergalaktionov.physiocare.model.RecordsResponse
@@ -21,6 +20,10 @@ import retrofit2.http.Headers
 import retrofit2.http.POST
 import retrofit2.http.Path
 
+/**
+ * Clase que maneja la comunicación con el servidor remoto.
+ * Utiliza Retrofit para realizar las peticiones HTTP.
+ */
 class Retrofit2Api {
     companion object {
         const val BASE_URL = "http://olexanderg.net:8080/"
@@ -34,10 +37,12 @@ class Retrofit2Api {
 }
 
 interface Retrofit2ApiInterface {
+    // Login
     @POST("auth/login")
     @Headers("Content-Type: application/json")
     suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
 
+    // Obtener todos los expedientes
     @GET("records")
     @Headers("Content-Type: application/json")
     suspend fun getAllRecords(@Header("Authorization") token: String): Response<RecordsResponse>
@@ -54,7 +59,7 @@ interface Retrofit2ApiInterface {
     suspend fun getAppointmentsByPatientId(
         @Header("Authorization") token: String,
         @Path("id") patientId: String
-    ): Response<AppointmentsResponse> // Define una clase que tenga `futuras` y `pasadas`
+    ): Response<AppointmentsResponse>
 
     // Obtiene una cita por ID
     @GET("records/appointments/{id}")
@@ -63,7 +68,7 @@ interface Retrofit2ApiInterface {
         @Path("id") id: String,
     ): Response<AppointmentResponse>
 
-    // Obtener citas por ID de fisioterapeuta (todas)
+    // Obtener citas por ID de fisioterapeuta (todas, las suyas unicamente)
     @GET("records/appointments/physio/{id}")
     suspend fun getAppointmentsByPhysio(
         @Header("Authorization") token: String,
@@ -77,16 +82,16 @@ interface Retrofit2ApiInterface {
         @Path("id") appointmentId: String
     ): Response<Unit>
 
+    // GET de todos los fisioterapeutas
     @GET("physios")
     @Headers("Content-Type: application/json")
     suspend fun getAllPhysios(@Header("Authorization") token: String): Response<PhysiosResponse>
 
+    // ENDPOINT para crear una cita
     @POST("records/{id}/appointments")
     suspend fun postAppointmentToRecord(
         @Header("Authorization") token: String,
         @Path("id") recordId: String,
         @Body appointment: AppointmentPostRequest
     ): Response<Unit>
-
-
 }
