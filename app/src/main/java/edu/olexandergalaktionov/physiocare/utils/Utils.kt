@@ -5,14 +5,14 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 
 /**
- * Function checkConnection.kt
+ * Función checkConnection.kt
  *
- * Checks if there is an active internet connection available on the device.
+ * Comprueba si hay una conexión a internet activa disponible en el dispositivo.
  *
- * @author Olexandr Galaktionov Tsisar
+ * @autor Olexandr Galaktionov Tsisar
  *
- * @param context The application context required to access system services.
- * @return True if the device is connected to the internet, false otherwise.
+ * @param context El contexto de la aplicación necesario para acceder a los servicios del sistema.
+ * @return True si el dispositivo está conectado a internet, false en caso contrario.
  */
 fun checkConnection(context: Context) : Boolean {
     val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -33,4 +33,8 @@ fun checkConnection(context: Context) : Boolean {
     return false
 }
 
+/**
+ * Variable isPhysio.kt
+ * Indica si el usuario es un fisioterapeuta o no.
+ */
 var isPhysio = false
