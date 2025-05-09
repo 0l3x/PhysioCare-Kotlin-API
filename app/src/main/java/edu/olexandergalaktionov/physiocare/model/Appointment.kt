@@ -1,6 +1,7 @@
 package edu.olexandergalaktionov.physiocare.model
 
 import com.google.gson.annotations.SerializedName
+import java.util.Date
 
 data class Appointment(
     @SerializedName("_id") val _id: String?,
@@ -31,4 +32,13 @@ data class AppointmentsFlatResponse(
     val ok: Boolean,
     val resultado: List<Appointment>
 )
+
+data class AppointmentPostRequest(
+    val physio: String,
+    val diagnosis: String,
+    val treatment: String,
+    val observations: String,
+    val date: Date
+)
+
 

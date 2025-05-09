@@ -27,10 +27,8 @@ class AppointmentAdapter(
         @SuppressLint("SetTextI18n")
         fun bind(appointment: Appointment) {
             binding.tvDate.text = "Día: ${formatDate(appointment.date)}"
-            binding.tvDiagnosis.text = "Diagnóstico: ${appointment.diagnosis ?: "N/A"}"
             val fullName = listOfNotNull(appointment.physioName, appointment.physioSurname).joinToString(" ")
             binding.tvPhysio.text = "Fisio: ${if (fullName.isBlank()) "Desconocido" else fullName}"
-            binding.tvObservations.text = "Observaciones: ${appointment.observations ?: "N/A"}"
 
             // Click al detalle
             binding.root.setOnClickListener {
@@ -50,7 +48,7 @@ class AppointmentAdapter(
             return try {
                 if (dateString == null) return "Desconocida"
                 val date = OffsetDateTime.parse(dateString)
-                date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
             } catch (e: DateTimeParseException) {
                 "Formato inválido"
             }

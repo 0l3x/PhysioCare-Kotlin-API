@@ -2,11 +2,15 @@ package edu.olexandergalaktionov.physiocare.data
 
 import android.util.Log
 import edu.olexandergalaktionov.physiocare.model.Appointment
+import edu.olexandergalaktionov.physiocare.model.AppointmentPostRequest
 import edu.olexandergalaktionov.physiocare.model.AppointmentsResponse
 import edu.olexandergalaktionov.physiocare.model.LoginRequest
 import edu.olexandergalaktionov.physiocare.model.LoginResponse
+import edu.olexandergalaktionov.physiocare.model.Physio
+import edu.olexandergalaktionov.physiocare.model.PhysiosResponse
 import edu.olexandergalaktionov.physiocare.model.RecordResponse
 import edu.olexandergalaktionov.physiocare.model.RecordsResponse
+import edu.olexandergalaktionov.physiocare.model.Record
 import retrofit2.HttpException
 
 class RemoteDataSource {
@@ -29,8 +33,10 @@ class RemoteDataSource {
         suspend fun getAllRecords(token: String): RecordsResponse {
             val response = api.getAllRecords("Bearer $token")
             if (response.isSuccessful) {
+                Log.d(TAG, "Respuesta exitosa: ${response.body()}")
                 return response.body() ?: throw Exception("Respuesta vacía del servidor")
             } else {
+                Log.e(TAG, "Error: ${response.message()} | ${response.errorBody()?.string()}")
                 throw Exception("Error al obtener records: ${response.message()}")
             }
         }
@@ -97,6 +103,30 @@ class RemoteDataSource {
         }
 
 
+        suspend fun getAllPhysios(token: String): List<Physio> {
+            val response = api.getAllPhysios("Bearer $token")
+            if (response.isSuccessful) {
+                val body = response.body()
+                if (body != null && body.ok == true && body.resultado != null) {
+                    return body.resultado
+                } else {
+                    throw Exception("No se encontraron fisioterapeutas")
+                }
+            } else {
+                Log.e(TAG, "Error: ${response.message()} | ${response.errorBody()?.string()}")
+                Log.e(TAG, "Error: ${response.errorBody()?.string()}")
+                throw Exception("Error al obtener fisioterapeutas: ${response.message()}")
+            }
+        }
+
+        suspend fun postAppointmentToRecord(
+            token: String,
+            recordId: String,
+            request: AppointmentPostRequest
+        ): Boolean {
+            val response = api.postAppointmentToRecord("Bearer $token", recordId, request)
+            return response.isSuccessful
+        }
 
 
     }

@@ -1,10 +1,13 @@
 package edu.olexandergalaktionov.physiocare.data
 
+import edu.olexandergalaktionov.physiocare.model.AppointmentPostRequest
 import edu.olexandergalaktionov.physiocare.model.AppointmentResponse
 import edu.olexandergalaktionov.physiocare.model.AppointmentsFlatResponse
 import edu.olexandergalaktionov.physiocare.model.AppointmentsResponse
 import edu.olexandergalaktionov.physiocare.model.LoginRequest
 import edu.olexandergalaktionov.physiocare.model.LoginResponse
+import edu.olexandergalaktionov.physiocare.model.Physio
+import edu.olexandergalaktionov.physiocare.model.PhysiosResponse
 import edu.olexandergalaktionov.physiocare.model.RecordResponse
 import edu.olexandergalaktionov.physiocare.model.RecordsResponse
 import retrofit2.Response
@@ -53,23 +56,36 @@ interface Retrofit2ApiInterface {
         @Path("id") patientId: String
     ): Response<AppointmentsResponse> // Define una clase que tenga `futuras` y `pasadas`
 
+    // Obtiene una cita por ID
     @GET("records/appointments/{id}")
     suspend fun getAppointmentById(
         @Header("Authorization") token: String,
         @Path("id") id: String,
     ): Response<AppointmentResponse>
 
+    // Obtener citas por ID de fisioterapeuta (todas)
     @GET("records/appointments/physio/{id}")
     suspend fun getAppointmentsByPhysio(
         @Header("Authorization") token: String,
         @Path("id") physioId: String
     ): Response<AppointmentsFlatResponse>
 
-
+    // Delete de cita por ID
     @DELETE("records/appointments/{id}")
     suspend fun deleteAppointment(
         @Header("Authorization") token: String,
         @Path("id") appointmentId: String
+    ): Response<Unit>
+
+    @GET("physios")
+    @Headers("Content-Type: application/json")
+    suspend fun getAllPhysios(@Header("Authorization") token: String): Response<PhysiosResponse>
+
+    @POST("records/{id}/appointments")
+    suspend fun postAppointmentToRecord(
+        @Header("Authorization") token: String,
+        @Path("id") recordId: String,
+        @Body appointment: AppointmentPostRequest
     ): Response<Unit>
 
 

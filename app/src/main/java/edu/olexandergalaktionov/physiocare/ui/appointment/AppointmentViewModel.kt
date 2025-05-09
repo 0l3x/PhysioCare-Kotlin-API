@@ -6,10 +6,14 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import edu.olexandergalaktionov.physiocare.data.PhysioCareRepository
 import edu.olexandergalaktionov.physiocare.model.Appointment
+import edu.olexandergalaktionov.physiocare.model.AppointmentPostRequest
+import edu.olexandergalaktionov.physiocare.model.Physio
+import edu.olexandergalaktionov.physiocare.model.PhysiosResponse
 import edu.olexandergalaktionov.physiocare.utils.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.util.Date
 
 class AppointmentViewModel(private val repository: PhysioCareRepository) : ViewModel() {
 
@@ -92,6 +96,22 @@ class AppointmentViewModel(private val repository: PhysioCareRepository) : ViewM
                 _error.value = "No se pudo eliminar: ${e.message}"
             }
         }
+    }
+
+    suspend fun getAllPhysios(): List<Physio> {
+        return repository.getAllPhysios()
+    }
+
+    suspend fun postAppointmentToRecord(
+        recordId: String,
+        physioId: String,
+        diagnosis: String,
+        treatment: String,
+        observations: String,
+        date: Date
+    ): Boolean {
+        val request = AppointmentPostRequest(physioId, diagnosis, treatment, observations, date)
+        return repository.postAppointmentToRecord(recordId, request)
     }
 }
 

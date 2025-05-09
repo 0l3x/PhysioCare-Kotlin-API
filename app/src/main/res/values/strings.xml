@@ -26,5 +26,6 @@
     <string name="not_logged">No hay sesión iniciada</string>
     <string name="closed_session">Sesión Cerrada</string>
     <string name="no_appointments">No hay citas disponibles</string>
+    <string name="select_physio">Asigna Fisioterapeuta</string>
 
 </resources>

@@ -19,7 +19,12 @@ import edu.olexandergalaktionov.physiocare.data.PhysioCareRepository
 import edu.olexandergalaktionov.physiocare.databinding.ActivityMainBinding
 import edu.olexandergalaktionov.physiocare.model.Appointment
 import edu.olexandergalaktionov.physiocare.model.LoginState
+import edu.olexandergalaktionov.physiocare.model.Record
+import edu.olexandergalaktionov.physiocare.ui.RecordDetailActivity
+import edu.olexandergalaktionov.physiocare.ui.RecordViewModel
+import edu.olexandergalaktionov.physiocare.ui.RecordViewModelFactory
 import edu.olexandergalaktionov.physiocare.ui.adapters.AppointmentAdapter
+import edu.olexandergalaktionov.physiocare.ui.adapters.RecordAdapter
 import edu.olexandergalaktionov.physiocare.ui.appointment.detail.AppointmentDetailActivity
 import edu.olexandergalaktionov.physiocare.ui.appointment.AppointmentViewModel
 import edu.olexandergalaktionov.physiocare.ui.appointment.AppointmentViewModelFactory
@@ -60,8 +65,16 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     private lateinit var appointmentAdapter: AppointmentAdapter
+    //private lateinit var recordAdapter: RecordAdapter
 
     private var showingFutureAppointments = true
+
+    private var currentView: ViewType = ViewType.APPOINTMENTS
+
+    enum class ViewType {
+        APPOINTMENTS,
+        RECORDS
+    }
 
     // para gestionar el login
     private val mainViewModel: MainViewModel by viewModels {
@@ -71,6 +84,11 @@ class MainActivity : AppCompatActivity() {
     // para gestionar las citas
     private val appointmentViewModel: AppointmentViewModel by viewModels {
         AppointmentViewModelFactory(PhysioCareRepository(SessionManager(dataStore)))
+    }
+
+    // para gestionar los registros
+    private val recordViewModel: RecordViewModel by viewModels {
+        RecordViewModelFactory(PhysioCareRepository(SessionManager(dataStore)))
     }
 
     override fun onStart() {
@@ -109,6 +127,7 @@ class MainActivity : AppCompatActivity() {
                         Log.i("LOGIN", "Success: ${state.response.token}")
 
                         isPhysio = state.response.rol == "physio"
+                        currentView = ViewType.APPOINTMENTS
                         setupAppointmentAdapter()
 
                         updateToolbarMenu()
@@ -129,7 +148,6 @@ class MainActivity : AppCompatActivity() {
 
         setupAppointmentAdapter()
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
-
 
         // Logica Refresh
         binding.swipeRefresh.setOnRefreshListener {
@@ -172,7 +190,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-
         binding.mToolbar.setNavigationOnClickListener {
             AlertDialog.Builder(this)
                 .setTitle("Acerca de")
@@ -185,7 +202,6 @@ class MainActivity : AppCompatActivity() {
                 .show()
         }
 
-
         binding.btnUpcoming.setOnClickListener {
             showingFutureAppointments = true
             observeAppointments()
@@ -194,6 +210,39 @@ class MainActivity : AppCompatActivity() {
         binding.btnPast.setOnClickListener {
             showingFutureAppointments = false
             observeAppointments()
+        }
+
+        // Logica BottomNavigation
+        binding.bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_appointments -> {
+                    currentView = ViewType.APPOINTMENTS
+                    setupAppointmentAdapter()
+                    loadData()
+                    true
+                }
+                R.id.nav_records -> {
+                    currentView = ViewType.RECORDS
+                    lifecycleScope.launch {
+                        try {
+                            val records = recordViewModel.getAllRecords()
+                            Log.i("RECORDS", "Records: $records")
+                            val recordAdapter = RecordAdapter(records) { selectedRecord ->
+                                val intent = Intent(this@MainActivity, RecordDetailActivity::class.java)
+                                intent.putExtra("recordId", selectedRecord.id)
+                                startActivity(intent)
+                            }
+                            binding.recyclerView.adapter = recordAdapter
+                            binding.noDataText.visibility = if (records.isEmpty()) View.VISIBLE else View.GONE
+                        } catch (e: Exception) {
+                            Log.e("RECORDS", "Error: ${e.message}")
+                            clearAppointments("Error al obtener registros: ${e.message}")
+                        }
+                    }
+                    true
+                }
+                else -> false
+            }
         }
 
     } // !! Fin create
@@ -248,23 +297,43 @@ class MainActivity : AppCompatActivity() {
                 return@launch
             }
 
-            try {
-                if(rol == "patient") {
-                    appointmentViewModel.fetchAppointmentsByPatient(userId!!)
-                    binding.filterButtons.visibility = View.VISIBLE
-                    binding.bottomNavigation.visibility = View.GONE
-                    observeAppointments()
-                } else if(rol == "physio") {
-                    appointmentViewModel.loadAppointmentsForPhysio(userId!!)
-                    binding.filterButtons.visibility = View.GONE
-                    binding.bottomNavigation.visibility = View.VISIBLE
+            isPhysio = rol == "physio"
+            setupAppointmentAdapter()
 
-                    appointmentViewModel.appointments.collect { appointments ->
-                        updateAppointmentList(appointments)
-                        binding.swipeRefresh.isRefreshing = false
+            try {
+                when(currentView) {
+                    ViewType.APPOINTMENTS -> {
+                        if(rol == "patient") {
+                            appointmentViewModel.fetchAppointmentsByPatient(userId!!)
+                            binding.filterButtons.visibility = View.VISIBLE
+                            binding.bottomNavigation.visibility = View.GONE
+                            observeAppointments()
+                        } else if(rol == "physio") {
+                            appointmentViewModel.loadAppointmentsForPhysio(userId!!)
+                            binding.filterButtons.visibility = View.GONE
+                            binding.bottomNavigation.visibility = View.VISIBLE
+
+                            appointmentViewModel.appointments.collect { appointments ->
+                                showingFutureAppointments = false // Fisio puede ver el detalle de todas las citas
+                                updateAppointmentList(appointments)
+                                binding.swipeRefresh.isRefreshing = false
+                            }
+
+                        }
                     }
 
+                    ViewType.RECORDS -> {
+                        val records = recordViewModel.getAllRecords()
+                        val recordAdapter = RecordAdapter(records) { selectedRecord ->
+                            val intent = Intent(this@MainActivity, RecordDetailActivity::class.java)
+                            intent.putExtra("recordId", selectedRecord.id)
+                            startActivity(intent)
+                        }
+                        binding.recyclerView.adapter = recordAdapter
+                        binding.noDataText.visibility = if (records.isEmpty()) View.VISIBLE else View.GONE
+                    }
                 }
+
 
             } catch (e: retrofit2.HttpException) {
                 if (e.code() == 401) {
@@ -338,7 +407,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun clearAppointments(message: String) {
-        appointmentAdapter.submitList(emptyList())
+        when (currentView) {
+            ViewType.APPOINTMENTS -> {
+                appointmentAdapter.submitList(emptyList())
+            }
+            ViewType.RECORDS -> {
+                binding.recyclerView.adapter = RecordAdapter(emptyList()) {}
+            }
+        }
         binding.noDataText.visibility = View.VISIBLE
         binding.swipeRefresh.isRefreshing = false
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()

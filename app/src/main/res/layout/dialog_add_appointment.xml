@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+    <LinearLayout
+            android:padding="16dp"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+        <DatePicker
+                android:id="@+id/datePicker"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:calendarViewShown="true"/>
+
+        <Spinner
+                android:id="@+id/spinnerPhysio"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:prompt="@string/select_physio"/>
+
+        <EditText
+                android:id="@+id/editDiagnosis"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Diagnóstico"/>
+
+        <EditText
+                android:id="@+id/editTreatment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Tratamiento"/>
+
+        <EditText
+                android:id="@+id/editObservations"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Observaciones (opcional)"
+                android:inputType="textMultiLine"
+                android:minLines="2"/>
+    </LinearLayout>
+</ScrollView>

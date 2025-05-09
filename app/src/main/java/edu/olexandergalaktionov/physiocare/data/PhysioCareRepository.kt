@@ -2,9 +2,12 @@ package edu.olexandergalaktionov.physiocare.data
 
 import android.util.Log
 import edu.olexandergalaktionov.physiocare.model.Appointment
+import edu.olexandergalaktionov.physiocare.model.AppointmentPostRequest
 import edu.olexandergalaktionov.physiocare.model.AppointmentsResponse
 import edu.olexandergalaktionov.physiocare.model.LoginRequest
 import edu.olexandergalaktionov.physiocare.model.LoginResponse
+import edu.olexandergalaktionov.physiocare.model.Physio
+import edu.olexandergalaktionov.physiocare.model.PhysiosResponse
 import edu.olexandergalaktionov.physiocare.model.RecordResponse
 import edu.olexandergalaktionov.physiocare.model.RecordsResponse
 import edu.olexandergalaktionov.physiocare.utils.SessionManager
@@ -67,6 +70,18 @@ class PhysioCareRepository(private val sessionManager: SessionManager) {
         remoteDataSource.deleteAppointmentById(token!!, appointmentId)
     }
 
+    suspend fun getAllPhysios() : List<Physio> {
+        val (token, _) = sessionManager.sessionFlow.first()
+        return remoteDataSource.getAllPhysios(token.toString())
+    }
+
+    suspend fun postAppointmentToRecord(
+        recordId: String,
+        request: AppointmentPostRequest
+    ): Boolean {
+        val (token, _) = sessionManager.sessionFlow.first()
+        return remoteDataSource.postAppointmentToRecord("Bearer $token", recordId, request)
+    }
 
 
 }
