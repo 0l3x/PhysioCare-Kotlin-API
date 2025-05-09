@@ -36,66 +36,70 @@ import edu.olexandergalaktionov.physiocare.utils.isPhysio
 import edu.olexandergalaktionov.physiocare.model.Record
 
 /**
- * TODO:
- * 1. variables esenciales para el main
- * 2. viewmodels para la sesion, citas y records
+ * Clase principal de la aplicación PhysioCare.
  *
- * 3. onStart() para cargar datos(), dependiendo de los necesarios(rol)
+ * Muestra las citas y expedientes dependiendo del rol del usuario (patient o physio).
+ * Gestiona la lógica de login, carga de datos, toolbar, botones de filtro y navegación inferior.
  *
- * 4. onCreate() para inicializar el binding, lifecycle para verificar si hay sesion activa al iniciar la activity,
- * si no mandar a login else( cargar datos
+ * Esta activity es responsable de:
+ * - Verificar si hay sesión activa y mostrar el diálogo de login si es necesario.
+ * - Mostrar la lista de citas del paciente o todas las del fisioterapeuta.
+ * - Permitir al fisioterapeuta ver expedientes y buscarlos por nombre o apellido.
+ * - Mostrar mensajes adecuados si no hay conexión, sesión o datos.
+ * - Permite al fisioterapeuta eliminar citas; al paciente ver los detalles de las citas pasadas,
+ *  y tambien permite refrescar la lista de citas, o expedientes si eres fisioterapeuta.
  *
- * 5. manejar con el viewmodel el loginState y handle UI response
- * -lifecycle que ccomprueba que haya token y posteriormente carga datos()
- *
- * 6. funcion loadData() segun rol para el adapter
- *
- * 7. logica freshRefresh
- *
- * 8. configurar el toolbar de arriba con el login
- *
- * 9 about me
- *
- * -- ^^ oncreate() ^^ --
- *
- *
- *
+ * @author Olexandr Galaktionov Tsisar
+ * @version 1.0
  */
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var appointmentAdapter: AppointmentAdapter
-
+    private var currentView: ViewType = ViewType.APPOINTMENTS
+    private var allRecords: List<Record> = emptyList()
     private var showingFutureAppointments = true
 
-    private var allRecords: List<Record> = emptyList()
-
-    private var currentView: ViewType = ViewType.APPOINTMENTS
-
+    /**
+     * enum para distinguir entre las vistas de citas y registros
+     */
     enum class ViewType {
         APPOINTMENTS,
         RECORDS
     }
 
-    // para gestionar el login
+    /**
+     * ViewModel para gestionar el estado de inicio de sesión
+     */
     private val mainViewModel: MainViewModel by viewModels {
         MainViewModelFactory(PhysioCareRepository(SessionManager(dataStore)))
     }
 
-    // para gestionar las citas
+    /**
+     * ViewModel para gestionar las citas.
+     */
     private val appointmentViewModel: AppointmentViewModel by viewModels {
         AppointmentViewModelFactory(PhysioCareRepository(SessionManager(dataStore)))
     }
 
-    // para gestionar los registros
+    /**
+     * ViewModel para gestionar los registros.
+     */
     private val recordViewModel: RecordViewModel by viewModels {
         RecordViewModelFactory(PhysioCareRepository(SessionManager(dataStore)))
     }
 
+    /**
+     * Cuando la actividad se inicia carga la información de las citas
+     */
     override fun onStart() {
         super.onStart()
         loadData()
     }
 
+    /**
+     * Inicializa la actividad principal.
+     * Configura el binding, el toolbar, el adaptador de citas y la lógica de inicio de sesión.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -107,8 +111,7 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        // lifecycle para verificar si hay sesion activa al iniciar la activity,
-        // * si no mandar a login else( cargar datos
+        // lifecycle para verificar si hay sesion activa al iniciar la activity
         lifecycleScope.launch {
             val token = SessionManager(dataStore).sessionFlow.first().first
             if (token == null) {
@@ -118,13 +121,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Observe login state and handle UI response
+        // Observa el login state y maneja la UI response
         lifecycleScope.launch {
             mainViewModel.loginState.collect { state ->
                 when (state) {
                     is LoginState.Loading -> Log.i("LOGIN", "Loading")
                     is LoginState.Success -> {
-                        Log.i("LOGIN", "Success: ${state.response.token}")
 
                         isPhysio = state.response.rol == "physio"
                         currentView = ViewType.APPOINTMENTS
@@ -138,7 +140,6 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                     is LoginState.Error -> {
-                        Log.e("LOGIN", "Error: ${state.message}")
                         Toast.makeText(this@MainActivity, "Error de login: ${state.message}", Toast.LENGTH_SHORT).show()
                     }
                     else -> {}
@@ -167,7 +168,7 @@ class MainActivity : AppCompatActivity() {
         binding.mToolbar.inflateMenu(R.menu.main_menu)
         updateToolbarMenu()
 
-        // Logica Botones
+        // Logica Botones de sesion
         binding.mToolbar.setOnMenuItemClickListener {
             when (it.itemId) {
                 R.id.action_login -> {
@@ -191,6 +192,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Acerca de
         binding.mToolbar.setNavigationOnClickListener {
             AlertDialog.Builder(this)
                 .setTitle("Acerca de")
@@ -203,11 +205,13 @@ class MainActivity : AppCompatActivity() {
                 .show()
         }
 
+        // Muestra citas futuras
         binding.btnUpcoming.setOnClickListener {
             showingFutureAppointments = true
             observeAppointments()
         }
 
+        // Muestra citas pasadas
         binding.btnPast.setOnClickListener {
             showingFutureAppointments = false
             observeAppointments()
@@ -229,12 +233,10 @@ class MainActivity : AppCompatActivity() {
                     lifecycleScope.launch {
                         try {
                             val records = recordViewModel.getAllRecords()
-                            Log.i("RECORDS", "Records: $records")
                             val recordAdapter = RecordAdapter(records)
                             binding.recyclerView.adapter = recordAdapter
                             binding.noDataText.visibility = if (records.isEmpty()) View.VISIBLE else View.GONE
                         } catch (e: Exception) {
-                            Log.e("RECORDS", "Error: ${e.message}")
                             clearAppointments("Error al obtener registros: ${e.message}")
                         }
                     }
@@ -246,6 +248,9 @@ class MainActivity : AppCompatActivity() {
 
     } // !! Fin create
 
+    /**
+     * Prepara el adaptador de citas con su lógica de clic y borrado.
+     */
     private fun setupAppointmentAdapter() {
         appointmentAdapter = AppointmentAdapter(
             onItemClick = { appointment ->
@@ -270,13 +275,14 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerView.adapter = appointmentAdapter
     }
 
+    /**
+     * Carga los datos de citas o registros según el rol del usuario.
+     * 1. Comprueba si hay token
+     * 2. Extrae el rol del token
+     * . Si es "patient" carga los appointments / añade botones / quita menu record
+     * . si es "physio" carga los appointments tmb / quita botones / añade menu record y gestiona record
+     */
     private fun loadData() {
-        /**
-         * 1. comprobar si hay token
-         * 2. extraer el rol del token
-         * 3. si es "patient" cargar los appointments / añadir botones / quitar menu record
-         * 4. si es "physio" cargar los appointments / quitar boteones / añadir menu record y logica record
-         */
         lifecycleScope.launch {
             binding.swipeRefresh.isRefreshing = true
 
@@ -331,7 +337,6 @@ class MainActivity : AppCompatActivity() {
                             override fun onQueryTextSubmit(query: String?): Boolean {
                                 return false
                             }
-
                             override fun onQueryTextChange(newText: String?): Boolean {
                                 filterRecords(newText.orEmpty())
                                 return true
@@ -348,7 +353,6 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
-
             } catch (e: retrofit2.HttpException) {
                 if (e.code() == 401) {
                     mainViewModel.logout()
@@ -359,12 +363,14 @@ class MainActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 clearAppointments("Error inesperado: ${e.message}")
             } finally {
-                // se desactiva el refresh si no se detuvo antes
-                binding.swipeRefresh.isRefreshing = false
+                binding.swipeRefresh.isRefreshing = false // se desactiva el refresh si no se detuvo antes
             }
         }
     }
 
+    /**
+     * Filtra la lista de expedientes según nombre o apellido del paciente.
+     */
     private fun filterRecords(query: String) {
         val filtered = allRecords.filter {
             it.patient.name?.contains(query, ignoreCase = true) == true ||
@@ -375,6 +381,9 @@ class MainActivity : AppCompatActivity() {
         binding.noDataText.visibility = if (filtered.isEmpty()) View.VISIBLE else View.GONE
     }
 
+    /**
+     * Observa la lista de citas y las actualiza según el filtro (futuras/pasadas).
+     */
     private fun observeAppointments() {
         lifecycleScope.launch {
             if (showingFutureAppointments) {
@@ -389,6 +398,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Actualiza el RecyclerView con una nueva lista de citas.
+     */
     private fun updateAppointmentList(appointments: List<Appointment>) {
         if (appointments.isEmpty()) {
             clearAppointments(getString(R.string.no_appointments))
@@ -398,6 +410,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Actualiza el menú del toolbar según el estado de la sesión.
+     */
     private fun updateToolbarMenu() {
         lifecycleScope.launch {
             val (token, _) = SessionManager(dataStore).sessionFlow.first()
@@ -407,6 +422,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Muestra el diálogo de login.
+     */
     private fun showLoginDialog() {
         val view = layoutInflater.inflate(R.layout.dialog_login, null)
         val etUsername = view.findViewById<EditText>(R.id.etUsername)
@@ -430,6 +448,9 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
+    /**
+     * Limpia los datos mostrados y muestra un mensaje.
+     */
     private fun clearAppointments(message: String) {
         when (currentView) {
             ViewType.APPOINTMENTS -> {
@@ -443,5 +464,4 @@ class MainActivity : AppCompatActivity() {
         binding.swipeRefresh.isRefreshing = false
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
-
 }
