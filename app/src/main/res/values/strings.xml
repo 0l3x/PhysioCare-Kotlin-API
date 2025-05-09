@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">PhysioCare</string>
-    <string name="diagnostico">Diagnóstico: Lumbalgia</string>
-    <string name="fisio">Fisio: Miguel</string>
+    <string name="diagnostico">Diagnóstico: </string>
+    <string name="fisio">Fisio: </string>
     <string name="login">Usuario</string>
     <string name="password">Contraseña</string>
     <string name="logout">Logout</string>
