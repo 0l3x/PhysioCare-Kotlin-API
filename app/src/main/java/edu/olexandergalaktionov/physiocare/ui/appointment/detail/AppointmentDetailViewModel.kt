@@ -9,6 +9,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel para gestionar la lógica de negocio relacionada con los detalles de una cita.
+ *
+ * @param repository Repositorio de datos.
+ * @constructor Crea una instancia de [AppointmentDetailViewModel].
+ * @author Olexandr Galaktionov Tsisar
+ */
 class AppointmentDetailViewModel(private val repository: PhysioCareRepository) : ViewModel() {
 
     private val _appointment = MutableStateFlow<Appointment?>(null)
@@ -17,7 +24,12 @@ class AppointmentDetailViewModel(private val repository: PhysioCareRepository) :
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
-    fun loadAppointment(token: String, id: String) {
+    /**
+     * Carga una cita específica por su ID.
+     *
+     * @param id ID de la cita.
+     */
+    fun loadAppointment(id: String) {
         viewModelScope.launch {
             try {
                 val result = repository.getAppointmentById(id)
@@ -29,6 +41,9 @@ class AppointmentDetailViewModel(private val repository: PhysioCareRepository) :
     }
 }
 
+/**
+ * Factory para crear instancias de [AppointmentDetailViewModel].
+ */
 class AppointmentDetailViewModelFactory(private val repository: PhysioCareRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return AppointmentDetailViewModel(repository) as T

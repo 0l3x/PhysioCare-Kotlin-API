@@ -8,13 +8,17 @@ import edu.olexandergalaktionov.physiocare.data.PhysioCareRepository
 import edu.olexandergalaktionov.physiocare.model.Appointment
 import edu.olexandergalaktionov.physiocare.model.AppointmentPostRequest
 import edu.olexandergalaktionov.physiocare.model.Physio
-import edu.olexandergalaktionov.physiocare.model.PhysiosResponse
-import edu.olexandergalaktionov.physiocare.utils.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.util.Date
 
+/**
+ * ViewModel para gestionar la lógica de negocio relacionada con las citas.
+ *
+ * @param repository Repositorio de datos.
+ * @constructor Crea una instancia de [AppointmentViewModel].
+ * @author Olexandr Galaktionov Tsisar
+ */
 class AppointmentViewModel(private val repository: PhysioCareRepository) : ViewModel() {
 
     private val _futureAppointments = MutableStateFlow<List<Appointment>>(emptyList())
@@ -27,12 +31,16 @@ class AppointmentViewModel(private val repository: PhysioCareRepository) : ViewM
     val appointments: StateFlow<List<Appointment>> = _appointments
 
     private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error
 
+    /**
+     * Carga las citas de un paciente específico.
+     *
+     * @param patientId ID del paciente.
+     */
     fun fetchAppointmentsByPatient(patientId: String) {
         viewModelScope.launch {
             try {
-                // 1. Comprobar si tiene expediente
+                // Comprobamos si tiene expediente
                 val recordResponse = repository.getRecordByPatientId(patientId)
                 if (!recordResponse.ok!!) {
                     _error.value = "No dispone de expediente médico."
@@ -41,14 +49,14 @@ class AppointmentViewModel(private val repository: PhysioCareRepository) : ViewM
                     return@launch
                 }
 
-                // 2. Obtener citas separadas
+                // Obtener citas separadas
                 val response = repository.getAppointmentsByPatientId(patientId)
 
                 if (response.ok) {
                     _futureAppointments.value = response.futuras
                     _pastAppointments.value = response.pasadas
 
-                    // 3. Mensajes específicos si no hay citas
+                    // Se muestran específicos si no hay citas
                     when {
                         response.futuras.isEmpty() && response.pasadas.isEmpty() ->
                             _error.value = "No dispone de citas registradas."
@@ -74,6 +82,11 @@ class AppointmentViewModel(private val repository: PhysioCareRepository) : ViewM
         }
     }
 
+    /**
+     * Carga las citas de un fisioterapeuta específico.
+     *
+     * @param physioId ID del fisioterapeuta.
+     */
     fun loadAppointmentsForPhysio(physioId: String) {
         viewModelScope.launch {
             _error.value = null
@@ -86,6 +99,12 @@ class AppointmentViewModel(private val repository: PhysioCareRepository) : ViewM
         }
     }
 
+    /**
+     * Elimina una cita por su ID.
+     *
+     * @param appointmentId ID de la cita a eliminar.
+     * @param physioId ID del fisioterapeuta.
+     */
     fun deleteAppointmentById(appointmentId: String, physioId: String) {
         viewModelScope.launch {
             _error.value = null
@@ -98,10 +117,26 @@ class AppointmentViewModel(private val repository: PhysioCareRepository) : ViewM
         }
     }
 
+    /**
+     * Obtiene todos los fisioterapeutas.
+     *
+     * @return Lista de fisioterapeutas.
+     */
     suspend fun getAllPhysios(): List<Physio> {
         return repository.getAllPhysios()
     }
 
+    /**
+     * Publica una cita en el expediente médico del paciente.
+     *
+     * @param recordId ID del expediente médico.
+     * @param physioId ID del fisioterapeuta.
+     * @param diagnosis Diagnóstico de la cita.
+     * @param treatment Tratamiento de la cita.
+     * @param observations Observaciones de la cita.
+     * @param date Fecha de la cita.
+     * @return Verdadero si se publicó correctamente, falso en caso contrario.
+     */
     suspend fun postAppointmentToRecord(
         recordId: String,
         physioId: String,
@@ -115,6 +150,11 @@ class AppointmentViewModel(private val repository: PhysioCareRepository) : ViewM
     }
 }
 
+/**
+ * Factory para crear instancias de [AppointmentViewModel].
+ *
+ * @param repository Repositorio de datos.
+ */
 class AppointmentViewModelFactory(private val repository: PhysioCareRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return AppointmentViewModel(repository) as T

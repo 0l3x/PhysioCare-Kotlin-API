@@ -19,15 +19,26 @@ import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
+/**
+ * Actividad para mostrar los detalles de una cita.
+ *
+ * @author Olexandr Galaktionov Tsisar
+ */
 class AppointmentDetailActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAppointmentDetailXBinding
-
+    /// ID de la cita
     private lateinit var appointmentId: String
 
+    /// ViewModel para gestionar la lógica de negocio relacionada con los detalles de una cita.
     private val viewModel: AppointmentDetailViewModel by viewModels {
         AppointmentDetailViewModelFactory(PhysioCareRepository(SessionManager(dataStore)))
     }
 
+    /**
+     * Método de creación de la actividad.
+     *
+     * @param savedInstanceState Estado guardado de la actividad.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -40,23 +51,22 @@ class AppointmentDetailActivity : AppCompatActivity() {
             insets
         }
 
+        // Obtener el ID de la cita del Intent
         appointmentId = intent.getStringExtra("appointmentId") ?: run {
             Toast.makeText(this, "ID de cita no proporcionado", Toast.LENGTH_SHORT).show()
             finish()
             return
         }
 
+        // Cargar la cita
         lifecycleScope.launch {
             val token = SessionManager(dataStore).sessionFlow.first().first
             if (token != null) {
-                viewModel.loadAppointment(token, appointmentId)
+                viewModel.loadAppointment(appointmentId)
             }
         }
 
-        observeViewModel()
-    }
-
-    private fun observeViewModel() {
+        // Mapeo de la vista
         lifecycleScope.launch {
             viewModel.appointment.collect { appt ->
                 appt?.let {
@@ -78,6 +88,7 @@ class AppointmentDetailActivity : AppCompatActivity() {
             }
         }
 
+        // Manejo de errores
         lifecycleScope.launch {
             viewModel.error.collect { error ->
                 error?.let {
