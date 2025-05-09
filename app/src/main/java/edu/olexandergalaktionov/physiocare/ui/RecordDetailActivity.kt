@@ -1,5 +1,6 @@
 package edu.olexandergalaktionov.physiocare.ui
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -98,6 +99,7 @@ class RecordDetailActivity : AppCompatActivity() {
 
     } // fin create
 
+    @SuppressLint("SetTextI18n")
     private fun loadAppointments() {
         lifecycleScope.launch {
             binding.swipeRefresh.isRefreshing = true
@@ -121,6 +123,13 @@ class RecordDetailActivity : AppCompatActivity() {
                     .getRecordByPatientId(recordId!!)
                 if (record != null) {
                     appointmentAdapter.submitList(record.appointments)
+
+                    // Mostrar datos del paciente
+                    binding.tvPatientName.text = "Nombre: ${record.patient.name} ${record.patient.surname}"
+                    binding.tvPatientBirth.text = "Nacimiento: ${record.patient.birthDate?.take(10)}"
+                    binding.tvPatientAddress.text = "Dirección: ${record.patient.address}"
+                    binding.tvMedicalRecord.text = "Historial: ${if (record.medicalRecord?.isNotBlank() == true) record.medicalRecord else "Sin historial registrado"}"
+
                     binding.swipeRefresh.isRefreshing = false
                 }
             } catch (e: Exception) {
@@ -163,6 +172,7 @@ class RecordDetailActivity : AppCompatActivity() {
                             set(datePicker.year, datePicker.month, datePicker.dayOfMonth, 12, 0)
                         }
 
+                        // Para formatear la fecha a "yyyy-MM-dd"
                         val formatter = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
                         formatter.timeZone = java.util.TimeZone.getTimeZone("UTC")
                         val date = formatter.format(calendar.time)

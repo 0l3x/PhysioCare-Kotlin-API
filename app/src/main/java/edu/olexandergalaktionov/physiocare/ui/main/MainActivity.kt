@@ -323,17 +323,25 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     ViewType.RECORDS -> {
-                        val records = recordViewModel.getAllRecords()
-                        val recordAdapter = RecordAdapter(records) { selectedRecord ->
-                            val intent = Intent(this@MainActivity, RecordDetailActivity::class.java)
-                            intent.putExtra("recordId", selectedRecord.id)
-                            startActivity(intent)
+                        if (token.isNullOrEmpty()) {
+                            clearAppointments(getString(R.string.not_logged))
+                            return@launch
                         }
-                        binding.recyclerView.adapter = recordAdapter
-                        binding.noDataText.visibility = if (records.isEmpty()) View.VISIBLE else View.GONE
+
+                        try {
+                            val records = recordViewModel.getAllRecords()
+                            val recordAdapter = RecordAdapter(records) { selectedRecord ->
+                                val intent = Intent(this@MainActivity, RecordDetailActivity::class.java)
+                                intent.putExtra("recordId", selectedRecord.id)
+                                startActivity(intent)
+                            }
+                            binding.recyclerView.adapter = recordAdapter
+                            binding.noDataText.visibility = if (records.isEmpty()) View.VISIBLE else View.GONE
+                        } catch (e: Exception) {
+                            clearAppointments("Error al obtener registros: ${e.message}")
+                        }
                     }
                 }
-
 
             } catch (e: retrofit2.HttpException) {
                 if (e.code() == 401) {

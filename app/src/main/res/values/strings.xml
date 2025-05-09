@@ -6,6 +6,16 @@
     <string name="password">Contraseña</string>
     <string name="logout">Logout</string>
 
+    <string name="accept">OK</string>
+    <string name="no_data">No hay información disponible</string>
+    <string name="physio_name_full">Fisioterapeuta: %1$s %2$s</string>
+    <string name="no_internet">No hay internet</string>
+    <string name="cancel">Cancelar</string>
+    <string name="not_logged">No hay sesión iniciada</string>
+    <string name="closed_session">Sesión Cerrada</string>
+    <string name="no_appointments">No hay citas disponibles</string>
+    <string name="select_physio">Asigna Fisioterapeuta</string>
+
     <string name="appointment_date">Fecha:</string>
     <string name="diagnosis">Diagnóstico:</string>
     <string name="treatment">Tratamiento:</string>
@@ -17,15 +27,5 @@
     <string name="treatment_full">Tratamiento: %1$s</string>
     <string name="observations_full">Observaciones: %1$s</string>
     <string name="physio_id_full">Fisioterapeuta: %1$s</string>
-
-    <string name="accept">OK</string>
-    <string name="no_data">No hay data disponible</string>
-    <string name="physio_name_full">Fisioterapeuta: %1$s %2$s</string>
-    <string name="no_internet">No hay internet</string>
-    <string name="cancel">Cancelar</string>
-    <string name="not_logged">No hay sesión iniciada</string>
-    <string name="closed_session">Sesión Cerrada</string>
-    <string name="no_appointments">No hay citas disponibles</string>
-    <string name="select_physio">Asigna Fisioterapeuta</string>
 
 </resources>
