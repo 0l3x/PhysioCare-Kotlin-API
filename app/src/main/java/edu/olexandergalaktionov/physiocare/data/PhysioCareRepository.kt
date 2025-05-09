@@ -80,7 +80,7 @@ class PhysioCareRepository(private val sessionManager: SessionManager) {
         request: AppointmentPostRequest
     ): Boolean {
         val (token, _) = sessionManager.sessionFlow.first()
-        return remoteDataSource.postAppointmentToRecord("Bearer $token", recordId, request)
+        return remoteDataSource.postAppointmentToRecord(token.toString(), recordId, request)
     }
 
 

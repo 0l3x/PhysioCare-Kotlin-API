@@ -125,6 +125,9 @@ class RemoteDataSource {
             request: AppointmentPostRequest
         ): Boolean {
             val response = api.postAppointmentToRecord("Bearer $token", recordId, request)
+            if (!response.isSuccessful) {
+                Log.e(TAG, "Error al guardar cita: ${response.code()} | ${response.errorBody()?.string()}")
+            }
             return response.isSuccessful
         }
 

@@ -162,12 +162,18 @@ class RecordDetailActivity : AppCompatActivity() {
                         val calendar = Calendar.getInstance().apply {
                             set(datePicker.year, datePicker.month, datePicker.dayOfMonth, 12, 0)
                         }
-                        val date = calendar.time
+
+                        val formatter = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+                        formatter.timeZone = java.util.TimeZone.getTimeZone("UTC")
+                        val date = formatter.format(calendar.time)
+
 
                         val selectedPhysio = fisios[spinnerPhysio.selectedItemPosition]
                         val diagnosis = editDiagnosis.text.toString()
                         val treatment = editTreatment.text.toString()
                         val observations = editObservations.text.toString()
+
+                        Log.d("CITA", "Fecha formateada: $date")
 
                         lifecycleScope.launch {
                             val success = appointmentViewModel.postAppointmentToRecord(

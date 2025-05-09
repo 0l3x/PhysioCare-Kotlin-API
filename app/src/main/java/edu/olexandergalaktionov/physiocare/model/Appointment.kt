@@ -38,7 +38,7 @@ data class AppointmentPostRequest(
     val diagnosis: String,
     val treatment: String,
     val observations: String,
-    val date: Date
+    val date: String
 )
 
 

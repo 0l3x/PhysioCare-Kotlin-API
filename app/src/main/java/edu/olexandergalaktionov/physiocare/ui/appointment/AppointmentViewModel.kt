@@ -108,7 +108,7 @@ class AppointmentViewModel(private val repository: PhysioCareRepository) : ViewM
         diagnosis: String,
         treatment: String,
         observations: String,
-        date: Date
+        date: String
     ): Boolean {
         val request = AppointmentPostRequest(physioId, diagnosis, treatment, observations, date)
         return repository.postAppointmentToRecord(recordId, request)
