@@ -3,7 +3,6 @@ package edu.olexandergalaktionov.physiocare.ui.record
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -35,16 +34,24 @@ import edu.olexandergalaktionov.physiocare.utils.isPhysio
 import kotlinx.coroutines.flow.first
 import java.util.Calendar
 
+/**
+ * Actividad para mostrar los detalles de un expediente.
+ * Permite ver y gestionar las citas del paciente.
+ * @author Olexandr Galaktionov Tsisar
+ */
 class RecordDetailActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRecordDetailBinding
     private lateinit var appointmentAdapter: AppointmentAdapter
     private var recordId: String? = null
 
-    // para gestionar las citas
+    // Para gestionar las citas
     private val appointmentViewModel: AppointmentViewModel by viewModels {
         AppointmentViewModelFactory(PhysioCareRepository(SessionManager(dataStore)))
     }
 
+    /**
+     * Método de creación de la actividad.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -56,10 +63,9 @@ class RecordDetailActivity : AppCompatActivity() {
             insets
         }
 
-        //val patientId = intent.getStringExtra("patientId")
         recordId = intent.getStringExtra("patientId")
 
-        // Configura SwipeRefresh
+        // Se configura SwipeRefresh
         binding.swipeRefresh.setOnRefreshListener {
             loadAppointments()
         }
@@ -99,6 +105,12 @@ class RecordDetailActivity : AppCompatActivity() {
 
     } // fin create
 
+    /**
+     * Carga las citas del paciente.
+     * Si no hay conexión a Internet, muestra un mensaje y limpia la lista de citas.
+     * Si el usuario no está autenticado, muestra un mensaje y limpia la lista de citas.
+     * Si se produce un error al cargar las citas, muestra un mensaje de error.
+     */
     @SuppressLint("SetTextI18n")
     private fun loadAppointments() {
         lifecycleScope.launch {
@@ -148,6 +160,10 @@ class RecordDetailActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Muestra un diálogo para añadir una nueva cita.
+     * @param recordId ID del registro al que se añadirá la cita.
+     */
     private fun showAddAppointmentDialog(recordId: String) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_add_appointment, null)
         val datePicker = dialogView.findViewById<DatePicker>(R.id.datePicker)
@@ -158,11 +174,9 @@ class RecordDetailActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             val token = SessionManager(dataStore).sessionFlow.first().first
-            Log.i("RecordDetailActivity", "Token: $token")
 
             if (token.isNullOrEmpty()) {
                 Toast.makeText(this@RecordDetailActivity, "Sesión caducada. Por favor, inicia sesión de nuevo.", Toast.LENGTH_LONG).show()
-                Log.e("RecordDetailActivity", "Token nulo o vacío")
             }
 
             try {
@@ -191,8 +205,7 @@ class RecordDetailActivity : AppCompatActivity() {
                         val treatment = editTreatment.text.toString()
                         val observations = editObservations.text.toString()
 
-                        Log.d("CITA", "Fecha formateada: $date")
-
+                        // Guardar la cita
                         lifecycleScope.launch {
                             val success = appointmentViewModel.postAppointmentToRecord(
                                 recordId,
@@ -219,11 +232,21 @@ class RecordDetailActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Crea el menú de opciones.
+     * @param menu Menú a inflar.
+     * @return true si se crea el menú, false en caso contrario.
+     */
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_record_detail, menu)
         return true
     }
 
+    /**
+     * Maneja la selección de opciones del menú.
+     * @param item Opción seleccionada.
+     * @return true si se maneja la opción, false en caso contrario.
+     */
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_add_appointment -> {
@@ -238,6 +261,10 @@ class RecordDetailActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Limpia la lista de citas y muestra un mensaje.
+     * @param message Mensaje a mostrar.
+     */
     private fun clearAppointments(message: String) {
         appointmentAdapter.submitList(emptyList())
         binding.noDataText.visibility = View.VISIBLE
